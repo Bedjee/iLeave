@@ -1,5 +1,5 @@
 import HRMOLayout from '@/Layouts/HRMOLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 export default function Show({ employee, balances, leaveTypes }) {
     const NAVY = '#0F2A52';
@@ -15,9 +15,14 @@ export default function Show({ employee, balances, leaveTypes }) {
     };
 
     const isEligibleForBalance = employee.user?.role !== 'hrmo';
-
-    // Get full name with salutation and middle initial if available
     const fullName = employee.full_name || `${employee.firstname} ${employee.lastname}`;
+
+   const handleToggleStatus = () => {
+    const action = employee.user?.status === 'active' ? 'deactivate' : 'activate';
+    if (confirm(`Are you sure you want to ${action} this employee?`)) {
+        router.patch(route('hrmo.employees.toggle-status', employee.id)); // 👈 changed to PATCH
+    }
+};
 
     return (
         <HRMOLayout>
@@ -55,14 +60,29 @@ export default function Show({ employee, balances, leaveTypes }) {
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
+                            {/* Status Badge */}
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                 employee.user?.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                             }`}>
                                 {employee.user?.status === 'active' ? 'Active' : 'Inactive'}
                             </span>
+
+                            {/* 🔥 Toggle Status Button */}
+                            <button
+                                onClick={handleToggleStatus}
+                                className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium transition ${
+                                    employee.user?.status === 'active'
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
+                            >
+                                {employee.user?.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(255,191,0,0.15)', color: NAVY }}>
                                 {roleLabels[employee.user?.role] || employee.user?.role || 'No role'}
                             </span>
+
                             <Link
                                 href={route('hrmo.employees.edit', employee.id)}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg transition shadow-sm hover:shadow-md"

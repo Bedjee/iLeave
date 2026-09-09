@@ -43,6 +43,7 @@ class LeaveRequest extends Model
      'final_approved_at',
     'final_approved_by',
     'skip_dept_head_approval', // new
+    'separation_processed',
     ];
 
     protected $casts = [
@@ -61,6 +62,7 @@ class LeaveRequest extends Model
     'monetized_days' => 'decimal:2',
     'final_approved_at' => 'datetime',
     'skip_dept_head_approval' => 'boolean',
+    'separation_processed' => 'boolean',
     ];
 
     // Relationships

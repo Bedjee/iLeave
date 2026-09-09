@@ -51,6 +51,7 @@ use App\Http\Controllers\HRMO\RescheduleController;
 use App\Http\Controllers\HRMO\LeaveRequestController as HRMOLeaveRequestController;
 use App\Http\Controllers\HRMO\LeaveRecordingController;
 use App\Http\Controllers\HRMO\ApprovedLeaveController;
+use App\Http\Controllers\HRMO\AccrualController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -148,6 +149,11 @@ Route::get('/approved-leaves/{leaveRequest}/history', [ApprovedLeaveController::
 Route::get('/notifications', [App\Http\Controllers\HRMO\NotificationController::class, 'index'])->name('notifications.index');
     Route::put('/notifications/{notification}/mark-read', [App\Http\Controllers\HRMO\NotificationController::class, 'markRead'])->name('notifications.mark-read');
     Route::put('/notifications/mark-all-read', [App\Http\Controllers\HRMO\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+
+
+
+    Route::get('/accruals', [AccrualController::class, 'index'])->name('accruals.index');
+Route::get('/accruals/month', [AccrualController::class, 'getMonthTransactions'])->name('accruals.month');
 });
 
 
