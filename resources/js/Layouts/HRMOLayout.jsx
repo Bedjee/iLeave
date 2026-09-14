@@ -7,6 +7,7 @@ export default function HRMOLayout({ children }) {
     const { auth } = props;
     const user = auth?.user || null;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const isActive = (route) => url.startsWith(route);
 
@@ -17,6 +18,24 @@ export default function HRMOLayout({ children }) {
         const removeStart = router.on('start', handleNavigationStart);
         return () => removeStart();
     }, [sidebarOpen]);
+
+    // Close modal on Escape + lock body scroll while open
+    useEffect(() => {
+        if (!showLogoutModal) return;
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') setShowLogoutModal(false);
+        };
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [showLogoutModal]);
 
     const NAVY = '#0F2A52';
     const GOLD = '#ffbf00';
@@ -166,10 +185,9 @@ export default function HRMOLayout({ children }) {
 
                 {/* Logout - Compact */}
                 <div className="border-t px-2 py-2" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
+                    <button
+                        type="button"
+                        onClick={() => setShowLogoutModal(true)}
                         className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg transition hover:bg-gray-50 text-xs"
                         style={{ color: NAVY }}
                     >
@@ -177,7 +195,7 @@ export default function HRMOLayout({ children }) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         <span>Logout</span>
-                    </Link>
+                    </button>
                 </div>
             </aside>
 
@@ -217,6 +235,88 @@ export default function HRMOLayout({ children }) {
                     <div className="max-w-7xl mx-auto">{children}</div>
                 </main>
             </div>
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center">
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/50"
+                        onClick={() => setShowLogoutModal(false)}
+                        aria-hidden="true"
+                    />
+
+                    {/* Panel */}
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="logout-modal-title"
+                        aria-describedby="logout-modal-description"
+                        className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div
+                                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
+                                style={{ backgroundColor: 'rgba(255,191,0,0.15)' }}
+                            >
+                                <svg
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    style={{ color: GOLD }}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    />
+                                </svg>
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <h2
+                                    id="logout-modal-title"
+                                    className="text-base font-semibold"
+                                    style={{ color: NAVY }}
+                                >
+                                    Sign out?
+                                </h2>
+                                <p
+                                    id="logout-modal-description"
+                                    className="mt-1 text-sm leading-relaxed text-gray-500"
+                                >
+                                    You&apos;ll be signed out of the HRMO Portal. You can sign back in anytime.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowLogoutModal(false)}
+                                className="w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition hover:bg-gray-50 sm:w-auto"
+                                style={{ borderColor: 'rgba(15,42,82,0.15)', color: NAVY }}
+                            >
+                                Cancel
+                            </button>
+
+                            <Link
+                                href={route('logout')}
+                                method="post"
+                                as="button"
+                                type="button"
+                                onClick={() => setShowLogoutModal(false)}
+                                className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
+                                style={{ backgroundColor: NAVY }}
+                            >
+                                Yes, sign out
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

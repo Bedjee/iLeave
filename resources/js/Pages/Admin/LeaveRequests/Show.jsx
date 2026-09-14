@@ -17,7 +17,9 @@ export default function Show({ leaveRequest, balance, balanceLabel, hasActiveDel
 
     const lr = leaveRequest;
     const originalDays = lr.original_number_of_days || lr.number_of_days;
-    const isPartiallyApproved = lr.status === 'approved' && originalDays !== lr.number_of_days;
+    const isPartiallyApproved =
+    lr.status === 'approved' &&
+    Number(originalDays) !== Number(lr.number_of_days);
 
     // --- Helpers ---
     const formatDate = (date) => {

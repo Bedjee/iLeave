@@ -75,4 +75,14 @@ public function leaveBalances()
 {
     return $this->hasMany(LeaveBalance::class, 'employee_id');
 }
+
+
+
+public function separations()
+{
+    return $this->hasMany(EmployeeSeparation::class)->orderByDesc('separation_date');
+}
+
+
+
 }

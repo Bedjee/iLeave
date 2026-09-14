@@ -1,12 +1,35 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, BarChart3, Building2, LogOut, User, Calendar, CheckSquare } from 'lucide-react';
 
 export default function MayorLayout({ children }) {
     const { url } = usePage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const isActive = (route) => url.startsWith(route);
+
+    // Close modal on Escape + lock body scroll while open
+    useEffect(() => {
+        if (!showLogoutModal) return;
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') setShowLogoutModal(false);
+        };
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [showLogoutModal]);
+
+    // Color palette (mayor theme)
+    const RED = '#B91C1C';
+    const RED_DARK = '#7F1D1D';
 
     return (
         <div className="h-screen bg-[#F8FAFC] flex overflow-hidden">
@@ -133,15 +156,14 @@ export default function MayorLayout({ children }) {
                             <div className="text-xs opacity-70">Municipality of Opol</div>
                         </div>
                     </div>
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
+                    <button
+                        type="button"
+                        onClick={() => setShowLogoutModal(true)}
                         className="flex w-full items-center gap-3 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-medium"
                     >
                         <LogOut className="w-5 h-5" />
                         Logout
-                    </Link>
+                    </button>
                 </div>
             </aside>
 
@@ -166,6 +188,75 @@ export default function MayorLayout({ children }) {
                     {children}
                 </div>
             </main>
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center">
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/50"
+                        onClick={() => setShowLogoutModal(false)}
+                        aria-hidden="true"
+                    />
+
+                    {/* Panel */}
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="logout-modal-title"
+                        aria-describedby="logout-modal-description"
+                        className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div
+                                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
+                                style={{ backgroundColor: 'rgba(185,28,28,0.1)' }}
+                            >
+                                <LogOut className="h-5 w-5" style={{ color: RED }} />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <h2
+                                    id="logout-modal-title"
+                                    className="text-base font-semibold"
+                                    style={{ color: RED_DARK }}
+                                >
+                                    Sign out?
+                                </h2>
+                                <p
+                                    id="logout-modal-description"
+                                    className="mt-1 text-sm leading-relaxed text-gray-500"
+                                >
+                                    You&apos;ll be signed out of the Mayor Portal. You can sign back in anytime.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowLogoutModal(false)}
+                                className="w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition hover:bg-gray-50 sm:w-auto"
+                                style={{ borderColor: 'rgba(185,28,28,0.2)', color: RED_DARK }}
+                            >
+                                Cancel
+                            </button>
+
+                            <Link
+                                href={route('logout')}
+                                method="post"
+                                as="button"
+                                type="button"
+                                onClick={() => setShowLogoutModal(false)}
+                                className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
+                                style={{ backgroundColor: RED }}
+                            >
+                                Yes, sign out
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

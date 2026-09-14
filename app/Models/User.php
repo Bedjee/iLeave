@@ -19,6 +19,8 @@ class User extends Authenticatable
         'status',
         'must_change_password', // <-- add
     'password_changed_at',  // <-- add
+    'separated_at',
+    'separation_reason',
     ];
 
     protected $hidden = [
@@ -33,6 +35,7 @@ class User extends Authenticatable
     'password_changed_at' => 'datetime',   // <-- if not already present
     'password' => 'hashed',
     'admin_pin_set_at' => 'datetime',
+     'separated_at' => 'datetime',
 ];
 
 
@@ -98,6 +101,19 @@ public function adminDelegations()
 public function delegatedToMe()
 {
     return $this->hasMany(AdminDelegation::class, 'delegate_id');
+}
+
+
+public function activeSeparation()
+{
+    return $this->hasOneThrough(
+        EmployeeSeparation::class,
+        Employee::class,
+        'user_id',      // employees.user_id
+        'employee_id',  // employee_separations.employee_id
+        'id',           // users.id
+        'id'            // employees.id
+    )->where('employee_separations.status', 'active');
 }
 
 }

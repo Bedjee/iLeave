@@ -116,7 +116,10 @@ Route::prefix('hrmo')->name('hrmo.')->middleware('role:hrmo')->group(function ()
     Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
     Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
     Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword'])->name('employees.reset-password');
-    Route::patch('/employees/{employee}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
+   Route::patch('/employees/{employee}/status', [EmployeeController::class, 'updateStatus'])
+    ->name('employees.update-status');
+Route::get('/employees/{employee}/separations', [EmployeeController::class, 'separationHistory'])
+    ->name('employees.separations');
 
     Route::resource('departments', DepartmentController::class)->except(['destroy']);
     Route::patch('/departments/{department}/toggle-status', [DepartmentController::class, 'toggleStatus'])->name('departments.toggle-status');

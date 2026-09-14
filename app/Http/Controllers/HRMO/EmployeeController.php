@@ -8,8 +8,11 @@ use App\Models\Employee;
 use App\Models\Department;
 use App\Models\LeaveType;
 use App\Models\LeaveBalance;
+use App\Services\EmployeeSeparationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -110,30 +113,35 @@ class EmployeeController extends Controller
             ->with('success', 'Employee created. Login: ' . $validated['email'] . ' / password: password');
     }
 
-  public function show(Employee $employee)
-{
-    $employee->load(['department', 'user']);
+    public function show(Employee $employee)
+    {
+        $employee->load([
+            'department',
+            'user',
+            'separations.processedBy',
+            'separations.reversedBy',
+        ]);
 
-    // Get current balances for each leave type
-    $balances = LeaveBalance::where('employee_id', $employee->id)
-        ->with('leaveType')
-        ->get()
-        ->mapWithKeys(function ($item) {
-            return [$item->leaveType->name => $item->balance];
-        })
-        ->toArray();
+        // Get current balances for each leave type
+        $balances = LeaveBalance::where('employee_id', $employee->id)
+            ->with('leaveType')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->leaveType->name => $item->balance];
+            })
+            ->toArray();
 
-    // Also get all leave types (for display even if balance is 0)
-    $leaveTypes = LeaveType::where('status', true)
-        ->pluck('name')
-        ->toArray();
+        // Also get all leave types (for display even if balance is 0)
+        $leaveTypes = LeaveType::where('status', true)
+            ->pluck('name')
+            ->toArray();
 
-    return Inertia::render('HRMO/Employees/Show', [
-        'employee' => $employee,
-        'balances' => $balances,
-        'leaveTypes' => $leaveTypes,
-    ]);
-}
+        return Inertia::render('HRMO/Employees/Show', [
+            'employee' => $employee,
+            'balances' => $balances,
+            'leaveTypes' => $leaveTypes,
+        ]);
+    }
 
     public function edit(Employee $employee)
     {
@@ -209,12 +217,104 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', 'Password reset to default.');
     }
 
-    public function toggleStatus(Employee $employee)
+    /**
+     * Update the employee's status (active / suspended / inactive).
+     * Handles separation and rehire flows via EmployeeSeparationService.
+     */
+    public function updateStatus(Request $request, Employee $employee)
     {
-        $newStatus = $employee->user->status === 'active' ? 'inactive' : 'active';
-        $employee->user->update(['status' => $newStatus]);
+        $validated = $request->validate([
+            'status'  => 'required|in:active,suspended,inactive',
+            'reason'  => 'required_if:status,inactive|nullable|in:resigned,retired,separated,deceased,other',
+            'remarks' => 'nullable|string|max:500',
+        ]);
 
-        return redirect()->back()->with('success', "Employee status updated to {$newStatus}.");
+        $oldStatus = $employee->user->status;
+        $newStatus = $validated['status'];
+
+        // No change
+        if ($oldStatus === $newStatus) {
+            return redirect()->back()->with('success', "Employee is already {$newStatus}.");
+        }
+
+        $service = app(EmployeeSeparationService::class);
+
+        try {
+            // ---- active → inactive (SEPARATION) ----
+            if ($oldStatus === 'active' && $newStatus === 'inactive') {
+                $service->separate(
+                    $employee,
+                    $validated['reason'],
+                    Auth::user(),
+                    $validated['remarks'] ?? null
+                );
+
+                return redirect()->back()->with(
+                    'success',
+                    'Employee separated. Final accrual applied and history recorded.'
+                );
+            }
+
+            // ---- inactive → active (REHIRE) ----
+            if ($oldStatus === 'inactive' && $newStatus === 'active') {
+                $service->rehire($employee, Auth::user());
+
+                return redirect()->back()->with(
+                    'success',
+                    'Employee rehired. Final accrual reversed (if applicable).'
+                );
+            }
+
+            // ---- all other transitions (suspension, reactivation) ----
+            $employee->user->update(['status' => $newStatus]);
+
+            $message = match ($newStatus) {
+                'suspended' => 'Employee suspended. Monthly accrual is paused.',
+                'active'    => 'Employee reactivated. Monthly accrual will resume.',
+                default     => "Employee status updated to {$newStatus}.",
+            };
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Employee status update failed', [
+                'employee_id' => $employee->id,
+                'old_status'  => $oldStatus,
+                'new_status'  => $newStatus,
+                'error'       => $e->getMessage(),
+                'trace'       => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->withErrors([
+                'error' => 'Failed to update status: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Return the full separation history for an employee (JSON).
+     */
+    public function separationHistory(Employee $employee)
+    {
+        $separations = $employee->separations()
+            ->with(['processedBy', 'reversedBy'])
+            ->get()
+            ->map(function ($sep) {
+                return [
+                    'id' => $sep->id,
+                    'separation_date' => $sep->separation_date->toDateString(),
+                    'reason' => $sep->reason,
+                    'final_accrual_vl' => (float) $sep->final_accrual_vl,
+                    'final_accrual_sl' => (float) $sep->final_accrual_sl,
+                    'status' => $sep->status,
+                    'credits_claimed' => $sep->credits_claimed,
+                    'reversed_at' => $sep->reversed_at?->toIso8601String(),
+                    'processed_by_name' => $sep->processedBy?->name,
+                    'reversed_by_name' => $sep->reversedBy?->name,
+                    'remarks' => $sep->remarks,
+                ];
+            });
+
+        return response()->json(['separations' => $separations]);
     }
 
     /**

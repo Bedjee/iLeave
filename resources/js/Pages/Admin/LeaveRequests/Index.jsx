@@ -276,42 +276,41 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
     }
 
     // --- Normal render ---
+     // --- Normal render ---
     return (
         <AdminLayout>
             <Head title="Leave Requests" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: NAVY }}>
-                            <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
+                        <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2" style={{ color: NAVY }}>
+                            <svg className="size-5 sm:size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Leave Requests
                         </h2>
-                        <p className="text-sm text-gray-500">Manage and review leave requests across the organization.</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Manage and review leave requests across the organization.</p>
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm flex-wrap">
                         <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GOLD }}></span>
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" style={{ backgroundColor: GOLD }}></span>
                             <span className="text-gray-600"><strong>{totalPending}</strong> Pending</span>
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
                             <span className="text-gray-600"><strong>{totalApproved}</strong> Approved</span>
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gray-400"></span>
                             <span className="text-gray-600"><strong>{totalCancelled}</strong> Recalled</span>
                         </span>
-                        <span className="text-gray-400">·</span>
-                        <span className="text-gray-500">{totalPending + totalApproved + totalCancelled} total</span>
                     </div>
                 </div>
 
-                {/* Search Bar (unchanged) */}
-                <div className="mb-6">
+                {/* Search Bar */}
+                <div className="mb-4 sm:mb-6">
                     <div className="relative max-w-md">
                         <svg
                             className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400"
@@ -323,10 +322,10 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                         </svg>
                         <input
                             type="text"
-                            placeholder="Search by employee, leave type, or position..."
+                            placeholder="Search employee, leave type..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-[#ffbf00] focus:ring-2 focus:ring-[#ffbf00]/20 transition text-sm"
+                            className="w-full pl-9 pr-9 py-2 bg-white border border-gray-200 rounded-lg focus:border-[#ffbf00] focus:ring-2 focus:ring-[#ffbf00]/20 transition text-xs sm:text-sm"
                         />
                         {searchTerm && (
                             <button
@@ -341,11 +340,11 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                     </div>
                 </div>
 
-                {/* Tabs – now three */}
-                <div className="border-b border-gray-200 mb-6">
-                    <nav className="-mb-px flex space-x-8">
+                {/* Tabs */}
+                <div className="border-b border-gray-200 mb-4 sm:mb-6">
+                    <nav className="-mb-px flex space-x-5 sm:space-x-8 overflow-x-auto">
                         <button
-                            className={`py-2 px-1 border-b-2 font-medium text-sm transition ${
+                            className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition ${
                                 activeTab === 'pending'
                                     ? 'border-[#ffbf00] text-[#ffbf00]'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -353,14 +352,14 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                             onClick={() => setActiveTab('pending')}
                         >
                             Pending
-                            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                            <span className={`ml-1.5 sm:ml-2 py-0.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs ${
                                 activeTab === 'pending' ? 'bg-[#ffbf00]/10 text-[#ffbf00]' : 'bg-gray-100 text-gray-500'
                             }`}>
                                 {totalPending}
                             </span>
                         </button>
                         <button
-                            className={`py-2 px-1 border-b-2 font-medium text-sm transition ${
+                            className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition ${
                                 activeTab === 'approved'
                                     ? 'border-[#ffbf00] text-[#ffbf00]'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -368,14 +367,14 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                             onClick={() => setActiveTab('approved')}
                         >
                             Approved
-                            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                            <span className={`ml-1.5 sm:ml-2 py-0.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs ${
                                 activeTab === 'approved' ? 'bg-[#ffbf00]/10 text-[#ffbf00]' : 'bg-gray-100 text-gray-500'
                             }`}>
                                 {totalApproved}
                             </span>
                         </button>
                         <button
-                            className={`py-2 px-1 border-b-2 font-medium text-sm transition ${
+                            className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition ${
                                 activeTab === 'cancelled'
                                     ? 'border-[#ffbf00] text-[#ffbf00]'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -383,7 +382,7 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                             onClick={() => setActiveTab('cancelled')}
                         >
                             Recalled
-                            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                            <span className={`ml-1.5 sm:ml-2 py-0.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs ${
                                 activeTab === 'cancelled' ? 'bg-[#ffbf00]/10 text-[#ffbf00]' : 'bg-gray-100 text-gray-500'
                             }`}>
                                 {totalCancelled}
@@ -392,26 +391,26 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                     </nav>
                 </div>
 
-                {/* Table */}
+                {/* Table / Cards */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {currentRequests.length === 0 ? (
-                        <div className="text-center py-12">
-                            <svg className="size-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="text-center py-10 sm:py-12">
+                            <svg className="size-12 sm:size-16 mx-auto text-gray-300 mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             {searchTerm ? (
                                 <>
-                                    <p className="text-gray-500 text-sm">No requests match your search.</p>
-                                    <p className="text-gray-400 text-xs mt-1">Try adjusting your search terms.</p>
+                                    <p className="text-gray-500 text-xs sm:text-sm">No requests match your search.</p>
+                                    <p className="text-gray-400 text-[11px] sm:text-xs mt-1">Try adjusting your search terms.</p>
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-gray-500 text-sm">
+                                    <p className="text-gray-500 text-xs sm:text-sm">
                                         {activeTab === 'pending' ? 'No requests pending your final approval.' :
                                          activeTab === 'approved' ? 'No fully approved requests yet.' :
                                          'No recalled requests.'}
                                     </p>
-                                    <p className="text-gray-400 text-xs mt-1">
+                                    <p className="text-gray-400 text-[11px] sm:text-xs mt-1">
                                         {activeTab === 'pending' ? 'Requests approved by department heads will appear here.' :
                                          activeTab === 'approved' ? 'Approved requests will be listed here.' :
                                          'Recalled requests will appear here.'}
@@ -420,81 +419,157 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                             )}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto -mx-4 sm:mx-0">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave Type</th>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department Head</th>
-                                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-100">
-                                    {currentRequests.map((req) => {
-                                        const specialBadge = getSpecialRequestBadge(req);
-                                        return (
-                                            <tr key={req.id} className="hover:bg-gray-50 transition duration-150">
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{req.employee?.full_name}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-700">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span>{req.leave_type?.name || '—'}</span>
-                                                        {specialBadge && (
-                                                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${specialBadge.color}`}>
-                                                                {specialBadge.icon}
-                                                                {specialBadge.label}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{getDateDisplay(req)}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-700">{getDaysDisplay(req)}</td>
-                                                <td className="px-4 py-3 text-sm">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(req.status)}`}>
-                                                        {getStatusIcon(req.status)}
-                                                        {getStatusLabel(req.status)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">
-                                                    {req.approved_at ? (
-                                                        <span className="flex items-center gap-1 text-gray-600">
-                                                            <svg className="size-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                            Dept. Head Approved
+                        <>
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave Type</th>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department Head</th>
+                                            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-100">
+                                        {currentRequests.map((req) => {
+                                            const specialBadge = getSpecialRequestBadge(req);
+                                            return (
+                                                <tr key={req.id} className="hover:bg-gray-50 transition duration-150">
+                                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{req.employee?.full_name}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-700">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span>{req.leave_type?.name || '—'}</span>
+                                                            {specialBadge && (
+                                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${specialBadge.color}`}>
+                                                                    {specialBadge.icon}
+                                                                    {specialBadge.label}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{getDateDisplay(req)}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-700">{getDaysDisplay(req)}</td>
+                                                    <td className="px-4 py-3 text-sm">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(req.status)}`}>
+                                                            {getStatusIcon(req.status)}
+                                                            {getStatusLabel(req.status)}
                                                         </span>
-                                                    ) : (
-                                                        '—'
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-right text-sm">
-                                                    <button
-                                                        ref={(el) => (buttonRefs.current[req.id] = el)}
-                                                        onClick={(e) => toggleDropdown(req.id, e)}
-                                                        className="p-1.5 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-2"
-                                                        style={{ '--tw-ring-color': GOLD }}
-                                                        aria-label="Actions"
-                                                    >
-                                                        <svg className="size-5 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                        </svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-500">
+                                                        {req.approved_at ? (
+                                                            <span className="flex items-center gap-1 text-gray-600">
+                                                                <svg className="size-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                Dept. Head Approved
+                                                            </span>
+                                                        ) : (
+                                                            '—'
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-sm">
+                                                        <button
+                                                            ref={(el) => (buttonRefs.current[req.id] = el)}
+                                                            onClick={(e) => toggleDropdown(req.id, e)}
+                                                            className="p-1.5 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-2"
+                                                            style={{ '--tw-ring-color': GOLD }}
+                                                            aria-label="Actions"
+                                                        >
+                                                            <svg className="size-5 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                                            </svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Cards */}
+                            <div className="md:hidden divide-y divide-gray-100">
+                                {currentRequests.map((req) => {
+                                    const specialBadge = getSpecialRequestBadge(req);
+                                    return (
+                                        <div key={req.id} className="p-3">
+                                            {/* Top row: employee + status */}
+                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                                        {req.employee?.full_name}
+                                                    </p>
+                                                    <p className="text-[11px] text-gray-500 truncate">
+                                                        {req.leave_type?.name || '—'}
+                                                    </p>
+                                                </div>
+                                                <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(req.status)}`}>
+                                                    {getStatusIcon(req.status)}
+                                                    {getStatusLabel(req.status)}
+                                                </span>
+                                            </div>
+
+                                            {/* Special badge */}
+                                            {specialBadge && (
+                                                <div className="mb-2">
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${specialBadge.color}`}>
+                                                        {specialBadge.icon}
+                                                        {specialBadge.label}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Details grid */}
+                                            <div className="grid grid-cols-2 gap-2 text-[11px] mb-2">
+                                                <div>
+                                                    <p className="text-gray-400">Dates</p>
+                                                    <p className="text-gray-700 font-medium truncate" title={getDateDisplay(req)}>
+                                                        {getDateDisplay(req)}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-400">Days</p>
+                                                    <p className="text-gray-700 font-medium">{getDaysDisplay(req)}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Department head */}
+                                            {req.approved_at && (
+                                                <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-2">
+                                                    <svg className="size-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Dept. Head Approved
+                                                </div>
+                                            )}
+
+                                            {/* Actions */}
+                                            <div className="flex items-center justify-end">
+                                                <button
+                                                    onClick={(e) => toggleDropdown(req.id, e)}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+                                                >
+                                                    Actions
+                                                    <svg className="size-3" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
 
                 {/* Footer */}
                 {currentRequests.length > 0 && (
-                    <div className="mt-4 text-xs text-gray-400 text-right">
+                    <div className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-400 text-right">
                         Showing {displayedCount} of {totalCount} {activeTab === 'pending' ? 'pending' : activeTab === 'approved' ? 'approved' : 'recalled'} requests
                         {searchTerm && ' (filtered)'}
                     </div>
@@ -522,7 +597,6 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
                         {activeTab === 'pending' ? 'Review' : 'View'}
                     </Link>
 
-                    {/* Recall – only for approved tab and Vacation Leave */}
                     {activeTab === 'approved' && (() => {
                         const req = approvedRequests.find(r => r.id === openDropdownId);
                         const isVL = req?.leave_type?.name?.toLowerCase().includes('vacation');
@@ -548,4 +622,5 @@ export default function Index({ pendingRequests = [], approvedRequests = [], can
             )}
         </AdminLayout>
     );
-}
+
+    }

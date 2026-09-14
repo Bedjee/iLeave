@@ -224,10 +224,18 @@ public function approve(Request $request, LeaveRequest $leaveRequest)
         $certificationService = new LeaveCertificationService();
         $certificationService->generateCertification($leaveRequest);
 
-        // 🔥 NEW: Process separation if Terminal Leave
+        // 🔥 NEW: If this is a Terminal Leave, mark the active separation's credits as claimed.
+        // This enables the "skip reversal on rehire" rule (Decision B / Option 3).
         if ($leaveRequest->request_type === 'terminal_leave' && $leaveRequest->status === 'approved') {
-            $terminalService = app(\App\Services\TerminalLeaveService::class);
-            $terminalService->processSeparation($leaveRequest);
+            $employee = $leaveRequest->employee;
+            if ($employee) {
+                app(\App\Services\EmployeeSeparationService::class)->markCreditsClaimed($employee);
+
+                Log::info('Terminal Leave approved — marked credits as claimed', [
+                    'leave_request_id' => $leaveRequest->id,
+                    'employee_id' => $employee->id,
+                ]);
+            }
         }
 
         $message = $isPartial
@@ -250,6 +258,7 @@ public function approve(Request $request, LeaveRequest $leaveRequest)
         return redirect()->back()->withErrors(['error' => 'Approval failed: ' . $e->getMessage()]);
     }
 }
+
 
 
 

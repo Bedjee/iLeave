@@ -159,17 +159,22 @@ export default function Index({ employees, filters, departments }) {
                                             <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{emp.email}</td>
                                             <td className="px-3 py-2 text-gray-600">{emp.department?.department_name || '—'}</td>
                                             <td className="px-3 py-2 text-gray-600">{emp.position || '—'}</td>
-                                            <td className="px-3 py-2 whitespace-nowrap">
-                                                {emp.user?.status === 'active' ? (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        Active
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                        Inactive
-                                                    </span>
-                                                )}
-                                            </td>
+                                           <td className="px-3 py-2 whitespace-nowrap">
+    {(() => {
+        const status = emp.user?.status || 'inactive';
+        const statusMap = {
+            active:    { label: 'Active',    class: 'bg-green-100 text-green-800' },
+            suspended: { label: 'Suspended', class: 'bg-yellow-100 text-yellow-800' },
+            inactive:  { label: 'Inactive',  class: 'bg-red-100 text-red-800' },
+        };
+        const info = statusMap[status] || statusMap.inactive;
+        return (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${info.class}`}>
+                {info.label}
+            </span>
+        );
+    })()}
+</td>
                                             <td className="px-3 py-2 text-center relative">
                                                 <button
                                                     onClick={() => setMenuOpen(menuOpen === emp.id ? null : emp.id)}
