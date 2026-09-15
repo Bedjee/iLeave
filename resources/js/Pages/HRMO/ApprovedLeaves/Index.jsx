@@ -113,7 +113,7 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
         if (dateStrings.length === 0) return <span className="text-gray-400">—</span>;
 
         const isExpanded = expandedDates[req.id] || false;
-        const maxVisible = 3;
+        const maxVisible = 2;
         const visibleDates = isExpanded ? dateStrings : dateStrings.slice(0, maxVisible);
         const hasMore = dateStrings.length > maxVisible;
 
@@ -122,7 +122,7 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                 {visibleDates.map((d, idx) => (
                     <span
                         key={idx}
-                        className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-xs text-gray-700 whitespace-nowrap"
+                        className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 text-[11px] text-gray-700 whitespace-nowrap"
                     >
                         {formatDateStr(d)}
                     </span>
@@ -130,73 +130,90 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                 {hasMore && !isExpanded && (
                     <button
                         onClick={() => setExpandedDates(prev => ({ ...prev, [req.id]: true }))}
-                        className="text-xs text-[#ffbf00] hover:underline font-medium ml-0.5"
+                        className="text-[11px] font-medium hover:underline"
+                        style={{ color: GOLD }}
                     >
-                        +{dateStrings.length - maxVisible} more
+                        +{dateStrings.length - maxVisible}
                     </button>
                 )}
                 {isExpanded && (
                     <button
                         onClick={() => setExpandedDates(prev => ({ ...prev, [req.id]: false }))}
-                        className="text-xs text-gray-500 hover:underline font-medium ml-0.5"
+                        className="text-[11px] text-gray-500 hover:underline font-medium"
                     >
-                        Show less
+                        less
                     </button>
                 )}
             </div>
         );
     };
 
+    const getDisplayStatus = (req) => {
+        if (req.status === 'certified') {
+            return { label: 'Certified', class: 'bg-blue-100 text-blue-700' };
+        }
+        return { label: 'Approved', class: 'bg-green-100 text-green-700' };
+    };
+
+    const getApprovedOnDate = (req) => {
+        if (req.final_approved_at) {
+            return { date: req.final_approved_at, suffix: '' };
+        }
+        if (req.certified_at) {
+            return { date: req.certified_at, suffix: ' (cert.)' };
+        }
+        return null;
+    };
+
     return (
         <HRMOLayout>
             <Head title="Approved Leave Requests" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
 
                 {/* ===== REMINDER BANNER ===== */}
-                <div className="rounded-xl border p-4 flex items-start gap-3" style={{ backgroundColor: '#fefce8', borderColor: GOLD }}>
-                    <svg className="size-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
+                <div className="rounded-lg border px-3 py-2.5 flex items-start gap-2.5" style={{ backgroundColor: '#fefce8', borderColor: GOLD }}>
+                    <svg className="size-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                        <p className="text-sm font-medium" style={{ color: NAVY }}>
+                        <p className="text-xs font-semibold mb-0.5" style={{ color: NAVY }}>
                             Keep your records up to date
                         </p>
-                        <p className="text-xs text-gray-600">
-                            Once a leave request is fully approved, we recommend downloading the official <strong>Leave Request Form</strong> 
-                            as a backup for your personal or departmental records. 
+                        <p className="text-xs text-gray-600 leading-snug">
+                            Once a leave request is fully approved or certified (for Mayor requests), we recommend downloading the official <strong>Leave Request Form</strong> as a backup for your records.
                             Use the <span className="font-semibold" style={{ color: GOLD }}>Download</span> button next to each entry.
                         </p>
                     </div>
                 </div>
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <h2 className="text-xl font-bold" style={{ color: NAVY }}>Approved Leave Requests</h2>
-                    <span className="text-sm text-gray-500">{leaveRequests.total} records</span>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <h2 className="text-lg font-bold" style={{ color: NAVY }}>Approved Leave Requests</h2>
+                    <span className="text-xs text-gray-500">{leaveRequests.total} records</span>
                 </div>
 
                 {/* Filters */}
-                <div className="rounded-xl border p-4" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="rounded-lg border px-3 py-3" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                         <div>
-                            <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Search</label>
+                            <label className="block text-[10px] font-semibold mb-1 uppercase tracking-wider" style={{ color: NAVY }}>Search</label>
                             <input
                                 type="text"
                                 placeholder="Employee name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2 text-sm"
+                                className="w-full rounded border px-2 py-1.5 text-xs"
                                 style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                 onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Leave Type</label>
+                            <label className="block text-[10px] font-semibold mb-1 uppercase tracking-wider" style={{ color: NAVY }}>Leave Type</label>
                             <select
                                 value={leaveType}
                                 onChange={(e) => setLeaveType(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2 text-sm"
+                                className="w-full rounded border px-2 py-1.5 text-xs"
                                 style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                             >
                                 <option value="">All Types</option>
@@ -206,11 +223,11 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Department</label>
+                            <label className="block text-[10px] font-semibold mb-1 uppercase tracking-wider" style={{ color: NAVY }}>Department</label>
                             <select
                                 value={department}
                                 onChange={(e) => setDepartment(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2 text-sm"
+                                className="w-full rounded border px-2 py-1.5 text-xs"
                                 style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                             >
                                 <option value="">All Departments</option>
@@ -220,30 +237,30 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Date From</label>
+                            <label className="block text-[10px] font-semibold mb-1 uppercase tracking-wider" style={{ color: NAVY }}>Date From</label>
                             <input
                                 type="date"
                                 value={dateFrom}
                                 onChange={(e) => setDateFrom(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2 text-sm"
+                                className="w-full rounded border px-2 py-1.5 text-xs"
                                 style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Date To</label>
+                            <label className="block text-[10px] font-semibold mb-1 uppercase tracking-wider" style={{ color: NAVY }}>Date To</label>
                             <input
                                 type="date"
                                 value={dateTo}
                                 onChange={(e) => setDateTo(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2 text-sm"
+                                className="w-full rounded border px-2 py-1.5 text-xs"
                                 style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                             />
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-2.5">
                         <button
                             onClick={applyFilters}
-                            className="px-4 py-2 text-black rounded-lg transition text-sm font-medium"
+                            className="px-3 py-1.5 text-black rounded transition text-xs font-semibold shadow-sm hover:shadow"
                             style={{ backgroundColor: GOLD }}
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e6ac00'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = GOLD}
@@ -252,7 +269,7 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                         </button>
                         <button
                             onClick={resetFilters}
-                            className="px-4 py-2 rounded-lg transition text-sm font-medium"
+                            className="px-3 py-1.5 rounded transition text-xs font-semibold"
                             style={{ backgroundColor: '#e5e7eb', color: NAVY }}
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1d5db'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
@@ -263,85 +280,107 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
+                <div className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-gray-700">
-                            <thead className="text-xs uppercase" style={{ backgroundColor: NAVY_LIGHT, color: NAVY }}>
+                        <table className="w-full text-xs text-left text-gray-700">
+                            <thead className="text-[10px] uppercase tracking-wider" style={{ backgroundColor: NAVY_LIGHT, color: NAVY }}>
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Employee</th>
-                                    <th className="px-4 py-3 font-medium">Leave Type</th>
-                                    <th className="px-4 py-3 font-medium">Dates</th>
-                                    <th className="px-4 py-3 font-medium text-center">Days</th>
-                                    <th className="px-4 py-3 font-medium">Approved On</th>
-                                    <th className="px-4 py-3 font-medium text-center">Downloads</th>
-                                    <th className="px-4 py-3 font-medium text-center">Actions</th>
+                                    <th className="px-3 py-2 font-semibold">Employee</th>
+                                    <th className="px-3 py-2 font-semibold">Leave Type</th>
+                                    <th className="px-3 py-2 font-semibold">Dates</th>
+                                    <th className="px-3 py-2 font-semibold text-center">Days</th>
+                                    <th className="px-3 py-2 font-semibold text-center">Status</th>
+                                    <th className="px-3 py-2 font-semibold">Approved On</th>
+                                    <th className="px-3 py-2 font-semibold text-center">Dl</th>
+                                    <th className="px-3 py-2 font-semibold text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
                                 {leaveRequests.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="px-4 py-8 text-center text-gray-500 text-sm">
+                                        <td colSpan="8" className="px-3 py-8 text-center text-gray-500 text-xs">
                                             No approved leave requests found.
                                         </td>
                                     </tr>
                                 ) : (
                                     leaveRequests.data.map((req) => {
                                         const downloadCount = req.print_logs_count || 0;
+                                        const displayStatus = getDisplayStatus(req);
+                                        const approvedOn = getApprovedOnDate(req);
+                                        const isCertified = req.status === 'certified';
+
                                         return (
-                                            <tr key={req.id} className="hover:bg-gray-50 transition">
-                                                <td className="px-4 py-3">
+                                            <tr
+                                                key={req.id}
+                                                className={`hover:bg-gray-50 transition ${
+                                                    isCertified ? 'border-l-2 border-blue-400' : ''
+                                                }`}
+                                            >
+                                                <td className="px-3 py-2">
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{req.employee?.full_name}</p>
-                                                        <p className="text-xs text-gray-500">{req.employee?.position}</p>
+                                                        <p className="font-semibold text-gray-900 text-xs leading-tight">{req.employee?.full_name}</p>
+                                                        <p className="text-[10px] text-gray-500 leading-tight mt-0.5">{req.employee?.position}</p>
                                                         {req.employee?.department && (
-                                                            <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                                                            <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
                                                                 {req.employee.department.department_name}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                                        {req.leave_type?.name}
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700">
+                                                        {req.leave_type?.name || '—'}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-3 py-2">
                                                     {renderDates(req)}
                                                 </td>
-                                                <td className="px-4 py-3 text-center font-medium">
+                                                <td className="px-3 py-2 text-center font-semibold text-xs">
                                                     {Number(req.number_of_days).toFixed(2)}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">
-                                                    {req.final_approved_at ? formatDateTime(req.final_approved_at) : '—'}
+                                                <td className="px-3 py-2 text-center">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${displayStatus.class}`}>
+                                                        {displayStatus.label}
+                                                    </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-center">
+                                                <td className="px-3 py-2 text-[11px] text-gray-500 whitespace-nowrap">
+                                                    {approvedOn ? (
+                                                        <span>
+                                                            {formatDateTime(approvedOn.date)}
+                                                            {approvedOn.suffix && (
+                                                                <span className="text-blue-600 font-medium">{approvedOn.suffix}</span>
+                                                            )}
+                                                        </span>
+                                                    ) : (
+                                                        '—'
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-2 text-center">
                                                     <button
                                                         onClick={() => viewHistory(req.id)}
-                                                        className="text-xs font-medium hover:underline flex items-center justify-center gap-1 mx-auto"
+                                                        className="text-[11px] font-medium hover:underline inline-flex items-center justify-center gap-1 mx-auto px-1.5 py-0.5 rounded hover:bg-gray-100 transition"
                                                         style={{ color: NAVY }}
                                                     >
-                                                        <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                         </svg>
                                                         {downloadCount}
                                                     </button>
                                                 </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleDownload(req.id)}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-black rounded-lg transition shadow-sm hover:shadow-md"
-                                                            style={{ backgroundColor: GOLD }}
-                                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e6ac00'}
-                                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = GOLD}
-                                                            title="Download approved Leave Request Form for your records"
-                                                        >
-                                                            <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                            </svg>
-                                                            Download
-                                                        </button>
-                                                    </div>
+                                                <td className="px-3 py-2 text-center">
+                                                    <button
+                                                        onClick={() => handleDownload(req.id)}
+                                                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-black rounded transition shadow-sm hover:shadow"
+                                                        style={{ backgroundColor: GOLD }}
+                                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e6ac00'}
+                                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = GOLD}
+                                                        title="Download approved Leave Request Form for your records"
+                                                    >
+                                                        <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                        </svg>
+                                                        Download
+                                                    </button>
                                                 </td>
                                             </tr>
                                         );
@@ -352,8 +391,8 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                     </div>
                     {/* Pagination */}
                     {leaveRequests.links && (
-                        <div className="px-4 py-3 border-t flex flex-wrap justify-between items-center gap-2" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
-                            <p className="text-sm text-gray-500">
+                        <div className="px-3 py-2.5 border-t flex flex-wrap justify-between items-center gap-2" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
+                            <p className="text-[11px] text-gray-500">
                                 Showing {leaveRequests.from} to {leaveRequests.to} of {leaveRequests.total}
                             </p>
                             <div className="flex gap-1">
@@ -366,9 +405,9 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                                             e.preventDefault();
                                             router.get(link.url, {}, { preserveState: true });
                                         }}
-                                        className={`px-3 py-1 rounded text-sm transition ${
+                                        className={`px-2.5 py-1 rounded text-[11px] transition ${
                                             link.active
-                                                ? 'text-white font-medium'
+                                                ? 'text-white font-semibold'
                                                 : 'text-gray-700 hover:bg-gray-100'
                                         } ${!link.url ? 'opacity-50 pointer-events-none' : ''}`}
                                         style={link.active ? { backgroundColor: GOLD } : {}}
@@ -384,11 +423,11 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
             {/* --- History Modal --- */}
             {historyModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl max-w-sm w-full max-h-[75vh] flex flex-col shadow-xl border border-gray-100 animate-fadeIn">
+                    <div className="bg-white rounded-lg max-w-sm w-full max-h-[75vh] flex flex-col shadow-xl border border-gray-100 animate-fadeIn">
                         {/* Header */}
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
-                            <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: NAVY }}>
-                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
+                            <h3 className="text-xs font-semibold flex items-center gap-2" style={{ color: NAVY }}>
+                                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: GOLD }}>
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                                 Download History
@@ -398,7 +437,7 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                                 className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-50"
                                 aria-label="Close"
                             >
-                                <svg className="size-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -408,21 +447,21 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                         <div className="flex-1 overflow-y-auto px-4 py-3">
                             {loadingHistory ? (
                                 <div className="flex items-center justify-center py-6">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#ffbf00] border-t-transparent"></div>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#ffbf00] border-t-transparent"></div>
                                 </div>
                             ) : historyData && historyData.total > 0 ? (
                                 <>
-                                    <p className="text-xs text-gray-500 mb-3">
-                                        Total downloads: <span className="font-medium text-gray-700">{historyData.total}</span>
+                                    <p className="text-[11px] text-gray-500 mb-3">
+                                        Total downloads: <span className="font-semibold text-gray-700">{historyData.total}</span>
                                     </p>
                                     <div className="space-y-1.5">
                                         {historyData.logs.map((log, idx) => (
                                             <div key={idx} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-medium text-gray-800 truncate">{log.user_name}</p>
-                                                    <p className="text-[11px] text-gray-400 truncate">{log.user_email}</p>
+                                                    <p className="text-[10px] text-gray-400 truncate">{log.user_email}</p>
                                                 </div>
-                                                <span className="text-xs text-gray-500 whitespace-nowrap ml-3 flex-shrink-0">
+                                                <span className="text-[10px] text-gray-500 whitespace-nowrap ml-3 flex-shrink-0">
                                                     {log.printed_at}
                                                 </span>
                                             </div>
@@ -430,15 +469,15 @@ export default function Index({ leaveRequests, filters, leaveTypes, departments,
                                     </div>
                                 </>
                             ) : (
-                                <p className="text-center text-gray-400 text-sm py-6">No download records found.</p>
+                                <p className="text-center text-gray-400 text-xs py-6">No download records found.</p>
                             )}
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 px-4 py-2.5 flex justify-end flex-shrink-0">
+                        <div className="border-t border-gray-100 px-4 py-2 flex justify-end flex-shrink-0">
                             <button
                                 onClick={() => { setHistoryModal(null); setHistoryData(null); }}
-                                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+                                className="px-3 py-1.5 text-[11px] font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition"
                             >
                                 Close
                             </button>

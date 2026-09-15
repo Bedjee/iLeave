@@ -38,10 +38,15 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(function ($req) {
+                // Fallback name for requests without a leave type (Terminal Leave, etc.)
+                $leaveTypeName = $req->leaveType?->name
+                    ?? ($req->request_type === 'terminal_leave' ? 'Terminal Leave'
+                        : ($req->request_type === 'monetization' ? 'Monetization' : '—'));
+
                 return [
                     'id' => $req->id,
-                    'employee' => $req->employee->full_name,
-                    'leave_type' => $req->leaveType->name,
+                    'employee' => $req->employee?->full_name ?? '—',
+                    'leave_type' => $leaveTypeName,
                     'days' => $req->number_of_days,
                     'start' => $req->start_date ? Carbon::parse($req->start_date)->format('M d') : null,
                     'end' => $req->end_date ? Carbon::parse($req->end_date)->format('M d') : null,
@@ -88,13 +93,16 @@ class DashboardController extends Controller
         // ============================================================
         $leaveTypeUsage = LeaveRequest::with('leaveType')
             ->where('status', 'approved')
+            ->whereNotNull('leave_type_id') // 🛡️ skip requests without a leave type
             ->select('leave_type_id', DB::raw('count(*) as total'))
             ->groupBy('leave_type_id')
             ->orderBy('total', 'desc')
             ->limit(5)
             ->get()
             ->mapWithKeys(function ($item) {
-                return [$item->leaveType->name => $item->total];
+                // Guard against a deleted/missing leave type
+                $name = $item->leaveType?->name ?? 'Unknown';
+                return [$name => $item->total];
             })
             ->toArray();
 
@@ -112,16 +120,12 @@ class DashboardController extends Controller
             ->pluck('total', 'department_name')
             ->toArray();
 
-
-
-
-             // ============================================================
+        // ============================================================
         // 5. Monthly Leave Type Breakdown (Stacked bar)
         // ============================================================
-        $currentYear = Carbon::now()->year;
-
         // Get top 5 leave types overall (by approved request count)
         $topLeaveTypeIds = LeaveRequest::where('status', 'approved')
+            ->whereNotNull('leave_type_id') // 🛡️ skip requests without a leave type
             ->select('leave_type_id', DB::raw('count(*) as total'))
             ->groupBy('leave_type_id')
             ->orderBy('total', 'desc')
@@ -137,7 +141,7 @@ class DashboardController extends Controller
 
         // Prepare datasets for each leave type
         $datasets = [];
-        $colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6B7280']; // leave types + others
+        $colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6B7280'];
 
         $colorIndex = 0;
         foreach ($topLeaveTypes as $ltId => $ltName) {
@@ -160,7 +164,7 @@ class DashboardController extends Controller
             $colorIndex++;
         }
 
-        // Add "Others" dataset
+        // Add "Others" dataset – includes requests with null leave_type_id
         $othersData = [];
         for ($month = 1; $month <= 12; $month++) {
             $totalMonth = LeaveRequest::where('status', 'approved')
@@ -185,8 +189,6 @@ class DashboardController extends Controller
             'borderColor' => '#6B7280',
             'borderWidth' => 1,
         ];
-
-
 
         return Inertia::render('HRMO/Dashboard', [
             'stats' => [
@@ -220,7 +222,7 @@ class DashboardController extends Controller
                 'labels' => array_keys($departmentUsage),
                 'data' => array_values($departmentUsage),
             ],
-             'monthlyLeaveTypeBreakdown' => [
+            'monthlyLeaveTypeBreakdown' => [
                 'labels' => $monthNames,
                 'datasets' => $datasets,
             ],

@@ -13,10 +13,13 @@ use App\Services\LeaveTypeRuleService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Concerns\HasUnavailableDates;
 use Inertia\Inertia;
 
 class LeaveRequestController extends Controller
 {
+    use HasUnavailableDates;
+
     public function create()
     {
         $employee = Auth::user()->employee;
@@ -48,19 +51,23 @@ class LeaveRequestController extends Controller
         $vlBalance = $this->getBalanceByLeaveTypeName($employee->id, 'Vacation Leave');
         $slBalance = $this->getBalanceByLeaveTypeName($employee->id, 'Sick Leave');
 
-        return Inertia::render('Employee/LeaveRequests/Create', [
-            'leaveTypes' => $leaveTypes,
-            'balances' => $balances,
-            'employee' => [
-                'name' => $employee->full_name,
-                'position' => $employee->position,
-                'department' => $employee->department?->department_name,
-            ],
-            'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
-            'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
-            'vlBalance' => $vlBalance,
-            'slBalance' => $slBalance,
-        ]);
+      return Inertia::render('Employee/LeaveRequests/Create', [
+    'leaveTypes' => $leaveTypes,
+    'balances' => $balances,
+    'employee' => [
+        'name' => $employee->full_name,
+        'position' => $employee->position,
+        'department' => $employee->department?->department_name,
+    ],
+    'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
+    'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
+    'vlBalance' => $vlBalance,
+    'slBalance' => $slBalance,
+    'unavailableDates' => $this->getUnavailableDates($employee->id), // 👈
+]);
+
+
+
     }
 
     public function store(StoreLeaveRequestRequest $request)
@@ -341,4 +348,42 @@ event(new LeaveRequestCreated($leaveRequest));
         }
         return $dates;
     }
+
+
+    /**
+ * Returns every date (Y-m-d string) covered by this employee's active
+ * leave requests — pending, certified, or approved. Rejected and
+ * cancelled requests are ignored.
+ */
+private function getUnavailableDates(int $employeeId): array
+{
+    $activeRequests = LeaveRequest::with(['dates'])
+        ->where('employee_id', $employeeId)
+        ->whereIn('status', ['pending', 'certified', 'approved'])
+        ->get();
+
+    $unavailable = [];
+
+    foreach ($activeRequests as $request) {
+        // Case 1: specific dates were filed
+        foreach ($request->dates as $date) {
+            if ($date->leave_date) {
+                $unavailable[] = Carbon::parse($date->leave_date)->format('Y-m-d');
+            }
+        }
+
+        // Case 2: a range was filed (start_date → end_date)
+        if ($request->start_date && $request->end_date) {
+            $period = CarbonPeriod::create(
+                $request->start_date,
+                $request->end_date
+            );
+            foreach ($period as $date) {
+                $unavailable[] = $date->format('Y-m-d');
+            }
+        }
+    }
+
+    return array_values(array_unique($unavailable));
+}
 }

@@ -10,12 +10,17 @@ use App\Models\LeaveRequest;
 use App\Services\LeaveRequestService;
 use App\Services\LeaveTypeRuleService;
 use Carbon\Carbon;
+use App\Http\Controllers\Concerns\HasUnavailableDates;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class MyLeaveRequestController extends Controller
 {
+
+use HasUnavailableDates;
+
+
     public function index()
     {
         $admin = Auth::user();
@@ -57,18 +62,21 @@ class MyLeaveRequestController extends Controller
         $slBalance = $this->getBalanceByLeaveTypeName($employee->id, 'Sick Leave');
 
         return Inertia::render('Admin/MyLeaveRequests/Create', [
-            'leaveTypes' => $leaveTypes,
-            'balances' => $balances,
-            'employee' => [
-                'name' => $employee->full_name,
-                'position' => $employee->position,
-                'department' => $employee->department?->department_name,
-            ],
-            'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
-            'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
-            'vlBalance' => $vlBalance,
-            'slBalance' => $slBalance,
-        ]);
+    'leaveTypes' => $leaveTypes,
+    'balances' => $balances,
+    'employee' => [
+        'name' => $employee->full_name,
+        'position' => $employee->position,
+        'department' => $employee->department?->department_name,
+    ],
+    'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
+    'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
+    'vlBalance' => $vlBalance,
+    'slBalance' => $slBalance,
+    'unavailableDates' => $this->getUnavailableDates($employee->id), // 👈
+]);
+
+
     }
 
     public function store(StoreLeaveRequestRequest $request)
@@ -161,9 +169,13 @@ class MyLeaveRequestController extends Controller
             'office_department_snapshot' => $employee->department?->department_name,
         ]);
 
-        return redirect()->route('admin.my-leave-requests.index')
-            ->with('success', 'Monetization request submitted successfully.');
+      event(new LeaveRequestCreated($leaveRequest));
+
+return redirect()->route('admin.my-leave-requests.index')
+    ->with('success', 'Monetization request submitted successfully.');
     }
+
+
 
     private function storeTerminalLeave($request, $employee)
     {
@@ -190,8 +202,10 @@ class MyLeaveRequestController extends Controller
             'office_department_snapshot' => $employee->department?->department_name,
         ]);
 
-        return redirect()->route('admin.my-leave-requests.index')
-            ->with('success', 'Terminal Leave request submitted successfully.');
+       event(new LeaveRequestCreated($leaveRequest));
+
+return redirect()->route('admin.my-leave-requests.index')
+    ->with('success', 'Monetization request submitted successfully.');
     }
 
     private function storeLeaveRequest($request, $employee)
@@ -273,9 +287,9 @@ class MyLeaveRequestController extends Controller
             'detail' => $data['detail'] ?? [],
         ];
 
-        LeaveRequestService::createLeaveRequest($leaveRequestData, $dates, $employee);
+       $leaveRequest = LeaveRequestService::createLeaveRequest($leaveRequestData, $dates, $employee);
 
-        event(new LeaveRequestCreated($leaveRequest));
+event(new LeaveRequestCreated($leaveRequest));
 
 
         return redirect()->route('admin.my-leave-requests.index')

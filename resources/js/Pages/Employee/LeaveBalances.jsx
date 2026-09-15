@@ -1,140 +1,320 @@
 import EmployeeLayout from '@/Layouts/EmployeeLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
+import {
+    Wallet,
+    Search,
+    X,
+    CheckCircle2,
+    ArrowRight,
+    AlertCircle,
+    TrendingUp,
+} from 'lucide-react';
 
+const NAVY = '#0F2A52';
+const GOLD = '#ffbf00';
+
+// ---------- Sub-components ----------
+function StatCard({ icon: Icon, label, value, suffix, accent = NAVY }) {
+    return (
+        <div
+            className="rounded-xl bg-white border shadow-sm p-4"
+            style={{ borderColor: 'rgba(15,42,82,0.08)' }}
+        >
+            <div className="flex items-center gap-2 mb-2">
+                <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${accent}15`, color: accent }}
+                >
+                    <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span
+                    className="text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: NAVY, opacity: 0.7 }}
+                >
+                    {label}
+                </span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold" style={{ color: NAVY }}>
+                    {value}
+                </span>
+                {suffix && (
+                    <span className="text-xs text-gray-500 font-medium">{suffix}</span>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function BalanceCard({ item }) {
+    const balance = Number(item.balance) || 0;
+    const defaultDays = Number(item.default_days) || 0;
+    const hasBalance = balance > 0;
+    const isUsedUp = balance === 0 && defaultDays > 0;
+
+    // How much of the default allocation is available (capped at 100%)
+    const ratio = defaultDays > 0
+        ? Math.min(100, (balance / defaultDays) * 100)
+        : (hasBalance ? 100 : 0);
+
+    const isFractional = balance % 1 !== 0;
+
+    return (
+        <Link
+            href={route('employee.leave-balances.history', item.id)}
+            className={`group relative rounded-xl border p-4 transition-all duration-200 flex flex-col ${
+                hasBalance
+                    ? 'bg-white hover:shadow-md hover:-translate-y-0.5'
+                    : 'bg-gray-50/70 hover:bg-gray-50'
+            }`}
+            style={{
+                borderColor: hasBalance
+                    ? 'rgba(15,42,82,0.08)'
+                    : 'rgba(15,42,82,0.05)',
+            }}
+        >
+            {/* ---------- Top: name + code + chip ---------- */}
+            <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0 flex-1">
+                    <h4
+                        className={`text-sm font-semibold truncate ${
+                            hasBalance ? 'text-gray-900' : 'text-gray-500'
+                        }`}
+                        title={item.name}
+                    >
+                        {item.name}
+                    </h4>
+                    <p className="text-[11px] text-gray-400 font-mono mt-0.5">
+                        {item.code}
+                    </p>
+                </div>
+
+                {item.earnable && hasBalance && (
+                    <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0"
+                        style={{
+                            backgroundColor: 'rgba(255,191,0,0.15)',
+                            color: '#B45309',
+                        }}
+                    >
+                        <TrendingUp className="w-2.5 h-2.5" />
+                        Accruing
+                    </span>
+                )}
+
+                {isUsedUp && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                        Used up
+                    </span>
+                )}
+            </div>
+
+            {/* ---------- Middle: big balance + progress ---------- */}
+            <div className="mb-3">
+                <div className="flex items-baseline gap-1.5">
+                    <span
+                        className={`text-3xl font-extrabold leading-none tabular-nums ${
+                            hasBalance ? '' : 'text-gray-400'
+                        }`}
+                        style={hasBalance ? { color: NAVY } : {}}
+                    >
+                        {isFractional ? balance.toFixed(2) : balance}
+                    </span>
+                    <span className="text-xs text-gray-500 font-medium">
+                        {balance === 1 ? 'day' : 'days'}
+                    </span>
+                    {defaultDays > 0 && (
+                        <span className="text-[11px] text-gray-400 ml-auto">
+                            of {defaultDays} default
+                        </span>
+                    )}
+                </div>
+
+                {defaultDays > 0 && (
+                    <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                                width: `${ratio}%`,
+                                backgroundColor: hasBalance ? GOLD : '#CBD5E1',
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* ---------- Bottom: history link ---------- */}
+            <div
+                className="mt-auto pt-3 border-t flex items-center justify-between gap-2"
+                style={{ borderColor: 'rgba(15,42,82,0.06)' }}
+            >
+                <span className="text-[11px] text-gray-500 group-hover:text-gray-700 transition">
+                    View history
+                </span>
+                <ArrowRight
+                    className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
+                    style={{ color: hasBalance ? GOLD : '#94A3B8' }}
+                />
+            </div>
+        </Link>
+    );
+}
+
+// ---------- Page ----------
 export default function LeaveBalances({ leaveBalances, employee }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredBalances = useMemo(() => {
         if (!searchQuery.trim()) return leaveBalances;
-        const query = searchQuery.toLowerCase().trim();
+        const q = searchQuery.toLowerCase().trim();
         return leaveBalances.filter(
             (item) =>
-                item.name.toLowerCase().includes(query) ||
-                item.code.toLowerCase().includes(query)
+                item.name.toLowerCase().includes(q) ||
+                item.code.toLowerCase().includes(q)
         );
     }, [leaveBalances, searchQuery]);
 
-    const NAVY = '#0F2A52';
-    const GOLD = '#ffbf00';
-    const NAVY_LIGHT = '#f0f4f8';
+    // Sort: types with balance first, then by balance descending
+    const sortedBalances = useMemo(() => {
+        return [...filteredBalances].sort((a, b) => {
+            const aHas = Number(a.balance) > 0 ? 1 : 0;
+            const bHas = Number(b.balance) > 0 ? 1 : 0;
+            if (aHas !== bHas) return bHas - aHas;
+            return Number(b.balance) - Number(a.balance);
+        });
+    }, [filteredBalances]);
+
+    // Summary stats
+    const totalBalance = useMemo(
+        () =>
+            leaveBalances.reduce(
+                (sum, item) => sum + Number(item.balance || 0),
+                0
+            ),
+        [leaveBalances]
+    );
+
+    const typesWithBalance = leaveBalances.filter(
+        (i) => Number(i.balance) > 0
+    ).length;
+
+    const typesUsedUp = leaveBalances.filter(
+        (i) => Number(i.balance) === 0 && Number(i.default_days) > 0
+    ).length;
+
+    const totalTypes = leaveBalances.length;
 
     return (
         <EmployeeLayout>
             <Head title="My Leave Balances" />
 
-            <div className="space-y-6">
-                {/* Header */}
+            <div className="space-y-5">
+                {/* ================= Header ================= */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex size-11 sm:size-12 items-center justify-center rounded-full flex-shrink-0" style={{ backgroundColor: 'rgba(255,191,0,0.15)', color: GOLD }}>
-                            <svg className="size-5 sm:size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 className="text-xl sm:text-2xl font-bold" style={{ color: NAVY }}>My Leave Balances</h2>
-                            <p className="text-sm text-gray-500 truncate max-w-[200px] sm:max-w-none">
-                                {employee?.name} · {employee?.position} · {employee?.department}
-                            </p>
-                        </div>
+                    <div>
+                        <h2
+                            className="text-xl font-bold flex items-center gap-2"
+                            style={{ color: NAVY }}
+                        >
+                            <Wallet className="w-5 h-5" style={{ color: GOLD }} />
+                            My Leave Balances
+                        </h2>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {employee?.name}
+                            {employee?.position && <> · {employee.position}</>}
+                            {employee?.department && <> · {employee.department}</>}
+                        </p>
                     </div>
 
-                    {/* Search – responsive width */}
+                    {/* Search */}
                     <div className="w-full lg:w-72">
                         <div className="relative">
-                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search leave types..."
+                                placeholder="Search leave types…"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:border-[#ffbf00] focus:ring-2 focus:ring-[#ffbf00]/20 transition shadow-sm"
+                                className="w-full pl-9 pr-9 py-2 rounded-lg border text-sm focus:outline-none transition bg-white"
+                                style={{ borderColor: 'rgba(15,42,82,0.12)' }}
+                                onFocus={(e) => (e.target.style.borderColor = GOLD)}
+                                onBlur={(e) =>
+                                    (e.target.style.borderColor = 'rgba(15,42,82,0.12)')
+                                }
                             />
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                                    aria-label="Clear search"
                                 >
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                    <X className="w-3.5 h-3.5" />
                                 </button>
                             )}
                         </div>
-                        {searchQuery && (
-                            <p className="text-xs text-gray-400 mt-1.5">
-                                Found {filteredBalances.length} result{filteredBalances.length !== 1 ? 's' : ''}
-                            </p>
-                        )}
                     </div>
                 </div>
 
-                {/* Cards Grid – fully responsive */}
-                {filteredBalances.length === 0 ? (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center">
-                        <svg className="size-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p className="text-gray-500">
-                            {searchQuery ? 'No leave types match your search.' : 'No leave balances found.'}
+                {/* ================= Summary stats ================= */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <StatCard
+                        icon={Wallet}
+                        label="Total Available"
+                        value={
+                            totalBalance % 1 === 0
+                                ? totalBalance
+                                : totalBalance.toFixed(2)
+                        }
+                        suffix={totalBalance === 1 ? 'day' : 'days'}
+                    />
+                    <StatCard
+                        icon={CheckCircle2}
+                        label="Types with Balance"
+                        value={`${typesWithBalance} / ${totalTypes}`}
+                        accent="#059669"
+                    />
+                    <StatCard
+                        icon={AlertCircle}
+                        label="Used Up"
+                        value={typesUsedUp}
+                        suffix={typesUsedUp === 1 ? 'type' : 'types'}
+                        accent={typesUsedUp > 0 ? '#DC2626' : '#94A3B8'}
+                    />
+                </div>
+
+                {/* ================= Cards grid ================= */}
+                {sortedBalances.length === 0 ? (
+                    <div className="rounded-xl bg-white border shadow-sm py-14 px-6 text-center"
+                        style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
+                        <div
+                            className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: 'rgba(15,42,82,0.05)' }}
+                        >
+                            <AlertCircle className="w-6 h-6" style={{ color: NAVY }} />
+                        </div>
+                        <p className="text-sm font-medium" style={{ color: NAVY }}>
+                            {searchQuery ? 'No matching leave types' : 'No leave balances found'}
                         </p>
+                        <p className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+                            {searchQuery
+                                ? 'Try a different search term or clear the field.'
+                                : 'Contact HRMO if you believe this is incorrect.'}
+                        </p>
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium text-white transition"
+                                style={{ backgroundColor: NAVY }}
+                            >
+                                Clear search
+                            </button>
+                        )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-                        {filteredBalances.map((item) => (
-                            <Link
-                                key={item.id}
-                                href={route('employee.leave-balances.history', item.id)}
-                                className="group relative bg-white rounded-2xl border border-gray-200 p-5 transition-all duration-200 hover:shadow-lg hover:border-[#ffbf00]/30 hover:-translate-y-1 flex flex-col"
-                            >
-                                {/* Top row: icon + name + balance */}
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="flex size-11 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 flex-shrink-0 group-hover:bg-[#ffbf00]/10 group-hover:border-[#ffbf00]/20 transition">
-                                            <img
-                                                src="/images/calendar.png"
-                                                alt="Leave"
-                                                className="h-6 w-6 object-contain"
-                                            />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h4 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h4>
-                                            <p className="text-xs text-gray-500">{item.code}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right flex-shrink-0">
-                                        <p className="text-2xl font-bold" style={{ color: NAVY }}>{item.balance}</p>
-                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">days</p>
-                                    </div>
-                                </div>
-
-                                {/* Bottom row: default days + earnable + history link */}
-                                <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                                        <span>
-                                            Default: <span className="font-medium text-gray-700">{item.default_days ?? '—'}</span>
-                                        </span>
-                                        <span className="w-px h-3 bg-gray-200"></span>
-                                        <span>
-                                            Earnable: <span className={`font-medium ${item.earnable ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {item.earnable ? 'Yes' : 'No'}
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <span className="text-xs flex items-center gap-1 font-medium transition group-hover:translate-x-0.5" style={{ color: GOLD }}>
-                                        View history
-                                        <svg className="size-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                        </svg>
-                                    </span>
-                                </div>
-
-                                {/* Optional: subtle gold accent line on hover */}
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#ffbf00] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-b-2xl"></div>
-                            </Link>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+                        {sortedBalances.map((item) => (
+                            <BalanceCard key={item.id} item={item} />
                         ))}
                     </div>
                 )}

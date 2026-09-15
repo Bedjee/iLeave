@@ -96,37 +96,145 @@ export default function AdminLayout({ children }) {
                 <div className="border-b" style={{ borderColor: 'rgba(15,42,82,0.08)' }}></div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-                    {navItems.map((item) => {
-                        const active = isActive(item.route.replace('admin.', ''));
-                        return (
-                            <Link
-                                key={item.route}
-                                href={route(item.route)}
-                                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
-                                    active
-                                        ? 'font-medium'
-                                        : 'hover:bg-gray-50'
-                                }`}
-                                style={
-                                    active
-                                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
-                                        : { color: NAVY }
-                                }
-                            >
-                                <span className="flex items-center gap-3">
-                                    {renderIcon(item.icon)}
-                                    <span className="text-sm">{item.label}</span>
-                                </span>
-                                {item.badge > 0 && (
-                                    <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium text-white rounded-full" style={{ backgroundColor: GOLD }}>
-                                        {item.badge}
-                                    </span>
-                                )}
-                            </Link>
-                        );
-                    })}
-                </nav>
+                {/* Navigation */}
+<nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+
+    {/* ============================================================
+        GROUP 1 — Workspace
+        The Admin's day-to-day landing surface.
+        ============================================================ */}
+    <div>
+        <div
+            className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: 'rgba(15,42,82,0.45)' }}
+        >
+            Workspace
+        </div>
+        <div className="space-y-1">
+            <Link
+                href={route('admin.dashboard')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+                    isActive('admin.dashboard') ? 'font-medium' : 'hover:bg-gray-50'
+                }`}
+                style={
+                    isActive('admin.dashboard')
+                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+                        : { color: NAVY }
+                }
+            >
+                <span className="flex items-center gap-3">
+                    {renderIcon('dashboard')}
+                    <span className="text-sm">Dashboard</span>
+                </span>
+            </Link>
+
+            <Link
+                href={route('admin.profile.edit')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+                    isActive('admin.profile.edit') ? 'font-medium' : 'hover:bg-gray-50'
+                }`}
+                style={
+                    isActive('admin.profile.edit')
+                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+                        : { color: NAVY }
+                }
+            >
+                <span className="flex items-center gap-3">
+                    {renderIcon('user')}
+                    <span className="text-sm">Profile</span>
+                </span>
+            </Link>
+        </div>
+    </div>
+
+    {/* ============================================================
+        GROUP 2 — Approvals (Admin duties)
+        Requests the Admin must process in their official capacity.
+        ============================================================ */}
+    <div>
+        <div
+            className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: 'rgba(15,42,82,0.45)' }}
+        >
+            Approvals
+        </div>
+        <div className="space-y-1">
+            <Link
+                href={route('admin.leave-requests.index')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+                    isActive('admin.leave-requests') ? 'font-medium' : 'hover:bg-gray-50'
+                }`}
+                style={
+                    isActive('admin.leave-requests')
+                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+                        : { color: NAVY }
+                }
+            >
+                <span className="flex items-center gap-3">
+                    {renderIcon('clipboard-check')}
+                    <span className="text-sm">Leave Requests</span>
+                </span>
+                {adminPendingCount > 0 && (
+                    <span
+                        className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium text-white rounded-full"
+                        style={{ backgroundColor: GOLD }}
+                    >
+                        {adminPendingCount}
+                    </span>
+                )}
+            </Link>
+
+            <Link
+                href={route('admin.delegations.index')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+                    isActive('admin.delegations') ? 'font-medium' : 'hover:bg-gray-50'
+                }`}
+                style={
+                    isActive('admin.delegations')
+                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+                        : { color: NAVY }
+                }
+            >
+                <span className="flex items-center gap-3">
+                    {renderIcon('users')}
+                    <span className="text-sm">Delegations</span>
+                </span>
+            </Link>
+        </div>
+    </div>
+
+    {/* ============================================================
+        GROUP 3 — My Leave (personal)
+        The Admin's own leave requests.
+        ============================================================ */}
+    <div>
+        <div
+            className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: 'rgba(15,42,82,0.45)' }}
+        >
+            My Leave
+        </div>
+        <div className="space-y-1">
+            <Link
+                href={route('admin.my-leave-requests.index')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+                    isActive('admin.my-leave-requests') ? 'font-medium' : 'hover:bg-gray-50'
+                }`}
+                style={
+                    isActive('admin.my-leave-requests')
+                        ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+                        : { color: NAVY }
+                }
+            >
+                <span className="flex items-center gap-3">
+                    {renderIcon('file-text')}
+                    <span className="text-sm">My Leave Requests</span>
+                </span>
+            </Link>
+        </div>
+    </div>
+
+</nav>
 
                 {/* Logout */}
                 <div className="border-t px-3 py-4" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>

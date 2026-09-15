@@ -296,7 +296,6 @@
             function getUserRoleDisplay($user) {
                 if (!$user) return 'Authorized Personnel';
 
-                // Use the 'role' column from the users table
                 $role = $user->role ?? null;
 
                 if ($role) {
@@ -310,7 +309,6 @@
                     return $map[$role] ?? ucfirst($role);
                 }
 
-                // Fallback if no role column
                 return 'Authorized Personnel';
             }
             // ---------------------------------------------------------
@@ -345,63 +343,73 @@
             $isMonetization = $leaveRequest->request_type === 'monetization';
             $isTerminal = $leaveRequest->request_type === 'terminal_leave';
 
+            // --------------------------------------------------------------
+            // 1. Get the LeaveType models for Vacation and Sick
+            // --------------------------------------------------------------
+            $vlType = \App\Models\LeaveType::where('code', 'VL')->first();
+            $slType = \App\Models\LeaveType::where('code', 'SL')->first();
+
+            // --------------------------------------------------------------
+            // 2. Fetch current balances from the employee's leave_balances
+            // --------------------------------------------------------------
+            $vlBalance = 0;
+            $slBalance = 0;
+
+            if ($employee && $employee->leaveBalances) {
+                if ($vlType) {
+                    $vlBal = $employee->leaveBalances->firstWhere('leave_type_id', $vlType->id);
+                    $vlBalance = $vlBal ? (float) $vlBal->balance : 0;
+                }
+                if ($slType) {
+                    $slBal = $employee->leaveBalances->firstWhere('leave_type_id', $slType->id);
+                    $slBalance = $slBal ? (float) $slBal->balance : 0;
+                }
+            }
+
+            // --------------------------------------------------------------
+            // 3. Determine how many days are applied for each type
+            // --------------------------------------------------------------
+            $daysApplied = (float) $leaveRequest->number_of_days;
+            $leaveCode = $leaveType ? strtoupper($leaveType->code) : '';
+
+            $vlLess = ($leaveCode === 'VL') ? $daysApplied : 0;
+            $slLess = ($leaveCode === 'SL') ? $daysApplied : 0;
 
 
-          // --------------------------------------------------------------
-// 1. Get the LeaveType models for Vacation and Sick
-// --------------------------------------------------------------
-$vlType = \App\Models\LeaveType::where('code', 'VL')->first();
-$slType = \App\Models\LeaveType::where('code', 'SL')->first();
 
-// --------------------------------------------------------------
-// 2. Fetch current balances from the employee's leave_balances
-// --------------------------------------------------------------
-$vlBalance = 0;
-$slBalance = 0;
+           $isMayorRequestForBalance = $employee?->user?->role === 'mayor';
+$isMayorPreview = $isMayorRequestForBalance && $leaveRequest->status === 'certified';
 
-if ($employee && $employee->leaveBalances) {
-    if ($vlType) {
-        $vlBal = $employee->leaveBalances->firstWhere('leave_type_id', $vlType->id);
-        $vlBalance = $vlBal ? (float) $vlBal->balance : 0;
-    }
-    if ($slType) {
-        $slBal = $employee->leaveBalances->firstWhere('leave_type_id', $slType->id);
-        $slBalance = $slBal ? (float) $slBal->balance : 0;
-    }
+if ($isMayorPreview) {
+    // ===== MAYOR (CERTIFIED — PREVIEW ONLY) =====
+    // Credits are NOT yet deducted. Show projected balance.
+    $vlDetail = (object) [
+        'total_earned'          => $vlBalance,
+        'less_this_application' => $vlLess,
+        'balance'               => $vlBalance - $vlLess, // preview only
+    ];
+    $slDetail = (object) [
+        'total_earned'          => $slBalance,
+        'less_this_application' => $slLess,
+        'balance'               => $slBalance - $slLess, // preview only
+    ];
+} else {
+    // ===== REGULAR EMPLOYEE (OR MAYOR ALREADY FINALIZED) =====
+    // Credits are already deducted. Historical record.
+    $vlTotalEarned = $vlBalance + $vlLess;
+    $slTotalEarned = $slBalance + $slLess;
+
+    $vlDetail = (object) [
+        'total_earned'          => $vlTotalEarned,
+        'less_this_application' => $vlLess,
+        'balance'               => $vlBalance,
+    ];
+    $slDetail = (object) [
+        'total_earned'          => $slTotalEarned,
+        'less_this_application' => $slLess,
+        'balance'               => $slBalance,
+    ];
 }
-
-// --------------------------------------------------------------
-// 3. Determine how many days are applied for each type
-// --------------------------------------------------------------
-$daysApplied = (float) $leaveRequest->number_of_days;
-$leaveCode = $leaveType ? strtoupper($leaveType->code) : '';
-
-$vlLess = ($leaveCode === 'VL') ? $daysApplied : 0;
-$slLess = ($leaveCode === 'SL') ? $daysApplied : 0;
-
-// --------------------------------------------------------------
-// 4. Compute "Total Earned" (balance before this deduction)
-//    and "Balance" (current balance after all deductions)
-// --------------------------------------------------------------
-$vlTotalEarned = $vlBalance + $vlLess;
-$slTotalEarned = $slBalance + $slLess;
-
-// We'll keep the variable names $vlDetail and $slDetail
-// but re-purpose them as arrays for easy display.
-$vlDetail = (object) [
-    'total_earned'          => $vlTotalEarned,
-    'less_this_application' => $vlLess,
-    'balance'               => $vlBalance,
-];
-$slDetail = (object) [
-    'total_earned'          => $slTotalEarned,
-    'less_this_application' => $slLess,
-    'balance'               => $slBalance,
-];
-
-
-
-
 
             // Get names with salutation & middle initial
             $hrmoName      = getUserDisplayName($certifiedBy);
@@ -410,6 +418,24 @@ $slDetail = (object) [
 
             // Dynamically get the final approver's role
             $adminRole     = getUserRoleDisplay($finalApprovedBy);
+
+            // --------------------------------------------------------------
+            // Mayor-specific approvers (configured by HRMO at certification)
+            // --------------------------------------------------------------
+            $isMayorRequest = $employee?->user?->role === 'mayor';
+
+            // Filter out any empty slots defensively
+            $mayorApprovers = collect();
+            if ($isMayorRequest && $leaveRequest->mayorApprovers) {
+                $mayorApprovers = $leaveRequest->mayorApprovers
+                    ->filter(fn($a) => trim($a->name ?? '') !== '')
+                    ->values();
+            }
+
+            // Slot 1 → Section 7.B (Recommendation)
+            // Slot 2 → Final approval section
+            $firstApprover  = $mayorApprovers->get(0); // used in 7.B
+            $secondApprover = $mayorApprovers->get(1); // used in final section
         @endphp
 
         <!-- HEADER -->
@@ -619,8 +645,17 @@ $slDetail = (object) [
                     <td style="width:50%;">
                         <span class="text-bold">7.A CERTIFICATION OF LEAVE CREDITS</span><br />
                         <div class="text-center" style="margin:4px 0;">
-                            As of <span class="field-value field-value-sm">{{ $certification ? formatDateDisplay($certification->certification_date) : '______________' }}</span>
-                        </div>
+    As of
+    <span class="field-value field-value-sm">
+        @if($certification && $certification->certification_date)
+            {{ formatDateDisplay($certification->certification_date) }}
+        @elseif($leaveRequest->certified_at)
+            {{ formatDateDisplay($leaveRequest->certified_at) }}
+        @else
+            ______________
+        @endif
+    </span>
+</div>
 
                         <table class="leave-credits-table">
                             <thead>
@@ -661,11 +696,23 @@ $slDetail = (object) [
                         </div>
                         <div style="margin:4px 0;"><span class="blank-line" style="display:block; width:80%;"></span></div>
 
-                        <div class="signature-block">
-                            <div class="signature-line">{{ $deptHeadName }}</div>
-                            <div class="signature-label">Approval Duly Recorded and Authorized in the System by</div>
-                            <div class="signature-sub">(Department Head/Authorized Personnel)</div>
-                        </div>
+                        @if($firstApprover)
+                            {{-- First configured approver (Mayor request) --}}
+                            <div class="signature-block">
+                                <div class="signature-line">{{ $firstApprover->name }}</div>
+                                <div class="signature-label">
+                                    {{ $firstApprover->role_label }}@if($firstApprover->position) — {{ $firstApprover->position }}@endif
+                                </div>
+                                <div class="signature-sub">(Department Head/Authorized Personnel)</div>
+                            </div>
+                        @else
+                            {{-- Default: Department Head --}}
+                            <div class="signature-block">
+                                <div class="signature-line">{{ $deptHeadName }}</div>
+                                <div class="signature-label">Approval Duly Recorded and Authorized in the System by</div>
+                                <div class="signature-sub">(Department Head/Authorized Personnel)</div>
+                            </div>
+                        @endif
                     </td>
                 </tr>
             </tbody>
@@ -692,8 +739,17 @@ $slDetail = (object) [
                 <tr>
                     <td colspan="2" style="border:1px solid #000; padding:8px 6px; text-align:center;">
                         <div class="signature-block">
-                            <div class="signature-line">{{ $adminName }}</div>
-                            <div class="approver-role">({{ $adminRole }})</div>
+                            @if($secondApprover)
+                                {{-- Second configured approver (Mayor request) --}}
+                                <div class="signature-line">{{ $secondApprover->name }}</div>
+                                <div class="approver-role">
+                                    ({{ $secondApprover->role_label }}@if($secondApprover->position) — {{ $secondApprover->position }}@endif)
+                                </div>
+                            @else
+                                {{-- Default: Admin / Final Approver --}}
+                                <div class="signature-line">{{ $adminName }}</div>
+                                <div class="approver-role">({{ $adminRole }})</div>
+                            @endif
                             <div class="verification-text">Approval Duly Recorded and Authorized in the System by</div>
                         </div>
                     </td>

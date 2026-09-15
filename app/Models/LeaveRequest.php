@@ -144,4 +144,10 @@ public function finalApprovedBy() // 👈 ADD THIS
 }
 
 
+public function mayorApprovers()
+{
+    return $this->hasMany(MayorLeaveApprover::class)->orderBy('slot');
+}
+
+
 }

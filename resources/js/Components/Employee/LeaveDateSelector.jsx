@@ -12,6 +12,7 @@ export default function LeaveDateSelector({
     maternityMode = false,
     adoptionMode = false,
     slbwMode = false,
+     unavailableDates = [],   // 👈 NEW
 }) {
     if (!leaveType) return null;
 
@@ -259,10 +260,11 @@ export default function LeaveDateSelector({
                 {renderHelper()}
                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Dates *</label>
                 <DatePickerCalendar
-                    selectedDates={data.dates || []}
-                    onDateSelect={handleDateSelect}
-                    minDate={minDate}
-                />
+    selectedDates={data.dates || []}
+    onDateSelect={handleDateSelect}
+    minDate={minDate}
+    unavailableDates={unavailableDates}   // 👈 NEW
+/>
                 {errors.dates && <p className="text-red-500 text-sm mt-1">{errors.dates}</p>}
             </div>
         );

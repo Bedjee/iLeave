@@ -1,6 +1,5 @@
 import MayorLayout from '@/Layouts/MayorLayout';
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
 
 export default function Show({ leaveRequest }) {
     const lr = leaveRequest;
@@ -36,7 +35,7 @@ export default function Show({ leaveRequest }) {
             if (!groups[key]) { groups[key] = { monthName, days: [] }; }
             groups[key].days.push(d.getDate());
         });
-        return Object.keys(groups).sort((a,b) => a.localeCompare(b)).map(key => groups[key]);
+        return Object.keys(groups).sort((a, b) => a.localeCompare(b)).map((key) => groups[key]);
     };
 
     const getStatusBadge = (status) => {
@@ -61,6 +60,17 @@ export default function Show({ leaveRequest }) {
         return labels[status] || status;
     };
 
+    const getStatusDescription = (status) => {
+        const descriptions = {
+            pending: 'Your leave request has been submitted and is awaiting review by the HRMO.',
+            certified: 'Your leave request has been certified by the HRMO. It is now awaiting the signature of the designated approvers on the physical form, after which HRMO will finalize it.',
+            approved: 'Your leave request has been officially approved. The leave credits have been deducted from your balance.',
+            rejected: 'Your leave request has been declined. Please see the reason below.',
+            cancelled: 'Your leave request has been cancelled.',
+        };
+        return descriptions[status] || '';
+    };
+
     let dateDisplay = null;
     if (lr.dates && lr.dates.length > 0) {
         const grouped = groupDatesByMonth(lr.dates);
@@ -69,7 +79,7 @@ export default function Show({ leaveRequest }) {
                 <div key={group.monthName} className="mb-3 last:mb-0">
                     <span className="text-sm font-medium text-gray-700">{group.monthName}</span>
                     <div className="flex flex-wrap gap-2 mt-1.5">
-                        {group.days.sort((a,b) => a-b).map((day) => (
+                        {group.days.sort((a, b) => a - b).map((day) => (
                             <div key={day} className="flex items-center justify-center min-w-[44px] h-10 px-3 bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium text-gray-800 hover:bg-gray-200 transition">{day}</div>
                         ))}
                     </div>
@@ -98,7 +108,7 @@ export default function Show({ leaveRequest }) {
             { key: 'adoption_info', label: 'Adoption Info' },
             { key: 'additional_info', label: 'Additional Info' },
         ];
-        fields.forEach(({key, label}) => {
+        fields.forEach(({ key, label }) => {
             const value = lr.detail[key];
             if (value) {
                 let display = value;
@@ -108,15 +118,36 @@ export default function Show({ leaveRequest }) {
         });
     }
 
-    // Mayor workflow timeline
+    // Mayor workflow timeline — 3 steps
     const steps = [
-        { key: 'submitted', label: 'Filed by Mayor', status: lr.submitted_at || lr.created_at ? 'completed' : 'pending' },
-        { key: 'certified', label: 'HRMO Certified', status: lr.certified_at ? 'completed' : lr.status === 'certified' ? 'current' : 'pending' },
+        {
+            key: 'submitted',
+            label: 'Filed by Mayor',
+            status: (lr.submitted_at || lr.created_at) ? 'completed' : 'pending',
+            date: lr.submitted_at || lr.created_at,
+        },
+        {
+            key: 'certified',
+            label: 'HRMO Certified',
+            status: lr.certified_at
+                ? 'completed'
+                : (lr.status === 'pending' ? 'current' : 'pending'),
+            date: lr.certified_at,
+        },
+        {
+            key: 'approved',
+            label: 'Approved',
+            status: lr.final_approved_at
+                ? 'completed'
+                : (lr.status === 'certified' ? 'current' : 'pending'),
+            date: lr.final_approved_at,
+        },
     ];
 
     const isRejected = lr.status === 'rejected';
     const isCancelled = lr.status === 'cancelled';
     const isCertified = lr.status === 'certified';
+    const isApproved = lr.status === 'approved';
 
     const getStepIcon = (stepStatus) => {
         if (stepStatus === 'completed') {
@@ -161,17 +192,27 @@ export default function Show({ leaveRequest }) {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className={`flex items-center justify-center w-14 h-14 rounded-2xl ${getStatusBadge(lr.status)} text-2xl font-bold flex-shrink-0`}>
-                                {lr.status === 'certified' && (
+                                {isApproved && (
                                     <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 )}
-                                {lr.status === 'rejected' && (
+                                {isCertified && (
+                                    <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                )}
+                                {isRejected && (
                                     <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 )}
-                                {!['certified','rejected','cancelled'].includes(lr.status) && (
+                                {isCancelled && (
+                                    <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                    </svg>
+                                )}
+                                {!['certified', 'rejected', 'cancelled', 'approved'].includes(lr.status) && (
                                     <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -189,21 +230,23 @@ export default function Show({ leaveRequest }) {
                             </div>
                         </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-4 text-sm text-gray-600">
+
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                        <p className="text-sm text-gray-600">{getStatusDescription(lr.status)}</p>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-4 text-sm text-gray-600">
                         {lr.certified_at && (
-                            <div>
-                                <span className="font-medium">Certified:</span> {formatDateTime(lr.certified_at)}
-                            </div>
+                            <div><span className="font-medium">Certified:</span> {formatDateTime(lr.certified_at)}</div>
+                        )}
+                        {lr.final_approved_at && (
+                            <div><span className="font-medium">Approved:</span> {formatDateTime(lr.final_approved_at)}</div>
                         )}
                         {lr.rejected_at && (
-                            <div>
-                                <span className="font-medium">Rejected:</span> {formatDateTime(lr.rejected_at)}
-                            </div>
+                            <div><span className="font-medium">Rejected:</span> {formatDateTime(lr.rejected_at)}</div>
                         )}
                         {lr.cancelled_at && (
-                            <div>
-                                <span className="font-medium">Cancelled:</span> {formatDateTime(lr.cancelled_at)}
-                            </div>
+                            <div><span className="font-medium">Cancelled:</span> {formatDateTime(lr.cancelled_at)}</div>
                         )}
                     </div>
                 </div>
@@ -271,7 +314,6 @@ export default function Show({ leaveRequest }) {
                                 </div>
                             ) : (
                                 <div className="relative">
-                                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                                     {steps.map((step, index) => {
                                         const isCompleted = step.status === 'completed';
                                         const isCurrent = step.status === 'current';
@@ -292,11 +334,8 @@ export default function Show({ leaveRequest }) {
                                                     {isCurrent && (
                                                         <p className="text-xs text-[#FF2D20] font-medium mt-0.5">In Progress</p>
                                                     )}
-                                                    {isCompleted && step.key === 'submitted' && lr.submitted_at && (
-                                                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(lr.submitted_at)}</p>
-                                                    )}
-                                                    {isCompleted && step.key === 'certified' && lr.certified_at && (
-                                                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(lr.certified_at)}</p>
+                                                    {isCompleted && step.date && (
+                                                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(step.date)}</p>
                                                     )}
                                                 </div>
                                             </div>

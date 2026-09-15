@@ -30,6 +30,7 @@ use App\Http\Controllers\Mayor\DashboardController as MayorDashboard;
 use App\Http\Controllers\Mayor\DelegatedLeaveRequestController;
 use App\Http\Controllers\Mayor\AdminLeaveRequestController;
 use App\Http\Controllers\Mayor\MyLeaveRequestController as MayorRequestController;
+use App\Http\Controllers\Mayor\DepartmentOverviewController;
 
 
 
@@ -129,10 +130,19 @@ Route::get('/employees/{employee}/separations', [EmployeeController::class, 'sep
 
     Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
     Route::post('/leave-balances', [LeaveBalanceController::class, 'update'])->name('leave-balances.update');
+    Route::get('/leave-balances/export-all', [LeaveBalanceController::class, 'exportAll'])
+    ->name('leave-balances.export-all');
+    Route::get('/leave-balances/{employee}/export', [LeaveBalanceController::class, 'export'])
+    ->name('leave-balances.export');
+    
 
     Route::get('/leave-requests', [HRMOLeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('/leave-requests/{leaveRequest}', [HRMOLeaveRequestController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}', [HRMOLeaveRequestController::class, 'update'])->name('leave-requests.update');
+    Route::post('/leave-requests/{leaveRequest}/approvers', [HRMOLeaveRequestController::class, 'updateApprovers'])
+    ->name('leave-requests.update-approvers');
+    Route::post('/leave-requests/{leaveRequest}/mark-approved', [HRMOLeaveRequestController::class, 'markAsApproved'])
+    ->name('leave-requests.mark-approved');
 
 
      Route::get('/reschedules', [RescheduleController::class, 'index'])->name('reschedules.index');
@@ -217,6 +227,9 @@ Route::post('/admin-leave-requests/{leaveRequest}/reject', [AdminLeaveRequestCon
     Route::get('/my-leave-requests/create', [MayorRequestController::class, 'create'])->name('my-leave-requests.create');
     Route::post('/my-leave-requests', [MayorRequestController::class, 'store'])->name('my-leave-requests.store');
     Route::get('/my-leave-requests/{leaveRequest}', [MayorRequestController::class, 'show'])->name('my-leave-requests.show');
+
+    Route::get('/department-overview', [DepartmentOverviewController::class, 'index'])
+    ->name('department-overview.index');
 
         });
 

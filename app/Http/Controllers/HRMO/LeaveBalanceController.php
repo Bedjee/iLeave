@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Exports\EmployeeLeaveBalanceExport;
+use App\Exports\AllEmployeesLeaveBalanceExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
@@ -19,9 +22,9 @@ class LeaveBalanceController extends Controller
     public function index(Request $request)
     {
         $employees = Employee::with('user')
-            ->whereHas('user', fn ($q) => $q->where('status', 'active'))
-            ->orderBy('lastname')
-            ->get(['id', 'firstname', 'lastname', 'email']);
+    ->whereHas('user', fn ($q) => $q->where('status', 'active'))
+    ->orderBy('lastname')
+    ->get(['id', 'firstname', 'lastname', 'email', 'position']); // 👈 added 'position'
 
         $selectedEmployeeId = $request->input('employee_id');
 
@@ -160,8 +163,38 @@ Log::info('All request data:', $request->all());
 
         return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
     }
+
 }
 
+
+
+/**
+ * Export all leave balance data for an employee to Excel.
+ */
+public function export(Employee $employee)
+{
+    // Authorize: only HRMO can export (middleware already handles this
+    // because it's inside the hrmo route group, but you can add more checks)
+
+    $filename = 'Leave_Balances_' .
+        str_replace(' ', '_', $employee->full_name) .
+        '_' . now()->format('Ymd_His') . '.xlsx';
+
+    return Excel::download(new EmployeeLeaveBalanceExport($employee), $filename);
+}
+
+
+
+/**
+ * Export the current leave balances of ALL employees to a single Excel sheet.
+ * Each employee gets one row; each leave type gets its own column.
+ */
+public function exportAll()
+{
+    $filename = 'All_Employees_Leave_Balances_' . now()->format('Ymd_His') . '.xlsx';
+
+    return Excel::download(new AllEmployeesLeaveBalanceExport(), $filename);
+}
 
 
 

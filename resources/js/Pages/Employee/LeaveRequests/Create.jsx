@@ -10,6 +10,7 @@ import OtherLeaveFields from '@/Components/Employee/OtherLeaveFields';
 import RehabLeaveFields from '@/Components/Employee/RehabLeaveFields';
 import MaternityLeaveFields from '@/Components/Employee/MaternityLeaveFields';
 import AdoptionLeaveFields from '@/Components/Employee/AdoptionLeaveFields';
+import LeaveRequestReviewModal from '@/Components/Employee/LeaveRequestReviewModal';
 import SpecialLeaveFields from '@/Components/Employee/SpecialLeaveFields'; // ✅ ADD THIS IMPORT
 
 // ============================================================
@@ -333,7 +334,7 @@ function useLeaveValidation(
 // ============================================================
 // Main Component
 // ============================================================
-export default function Create({ leaveTypes, balances, employee, hasTakenMaternityLeave = false, hasTakenAdoptionLeave = false, vlBalance = 0, slBalance = 0 }) {
+export default function Create({ leaveTypes, balances, employee, hasTakenMaternityLeave = false, hasTakenAdoptionLeave = false, vlBalance = 0, slBalance = 0 , unavailableDates = [], }) {
 
     const { data, setData, processing, errors } = useForm({
          request_type: 'leave',
@@ -363,6 +364,7 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
     const [calculatedDays, setCalculatedDays] = useState(0);
     const [selectedSpecialType, setSelectedSpecialType] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
 
         // Helper: count working days (Mon-Fri) from an array of date strings
@@ -537,30 +539,36 @@ const handleSelectSpecial = (type) => {
 
 
 
+// Step 1: validate, then open the review modal
 const submit = (e) => {
     e.preventDefault();
     if (!isValid) return;
+    setShowReviewModal(true);
+};
 
+// Step 2: user confirmed in the modal — actually POST
+const confirmSubmit = () => {
     let payload = { ...data };
     if (selectedSpecialType) {
-        // For special requests, remove unnecessary fields
         delete payload.leave_type_id;
         delete payload.start_date;
         delete payload.end_date;
         delete payload.dates;
         payload.request_type = selectedSpecialType;
     } else {
-        // Regular leave – clean dates
-        payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
+        payload.dates = (data.dates || []).filter((d) => d && d.trim() !== '');
         payload.request_type = 'leave';
     }
 
     router.post(route('employee.leave-requests.store'), payload, {
-        onSuccess: () => {},
-        onError: (err) => console.error('Submission errors:', err),
+        onSuccess: () => setShowReviewModal(false),
+        onError: (err) => {
+            console.error('Submission errors:', err);
+            setShowReviewModal(false); // let the page show field errors
+        },
+        onFinish: () => setShowReviewModal(false),
     });
 };
-
 
 
 
@@ -741,17 +749,21 @@ const submit = (e) => {
                         {/* Date Selector */}
                         {selectedType && (
                             <LeaveDateSelector
-                                leaveType={selectedType}
-                                data={data}
-                                setData={setData}
-                                errors={{ ...errors, ...frontendErrors }}
-                                studyMode={selectedType.name.toLowerCase().includes('study')}
-                                studyPurpose={data.detail.study_purpose}
-                                rehabMode={selectedType.name.toLowerCase().includes('rehabilitation')}
-                                  maternityMode={selectedType.name.toLowerCase().includes('maternity')}
-                                   adoptionMode={selectedType.name.toLowerCase().includes('adoption')}
-                                    slbwMode={selectedType.name.toLowerCase().includes('special leave benefits') || selectedType.name.toLowerCase().includes('slbw')}
-                            />
+    leaveType={selectedType}
+    data={data}
+    setData={setData}
+    errors={{ ...errors, ...frontendErrors }}
+    studyMode={selectedType.name.toLowerCase().includes('study')}
+    studyPurpose={data.detail.study_purpose}
+    rehabMode={selectedType.name.toLowerCase().includes('rehabilitation')}
+    maternityMode={selectedType.name.toLowerCase().includes('maternity')}
+    adoptionMode={selectedType.name.toLowerCase().includes('adoption')}
+    slbwMode={
+        selectedType.name.toLowerCase().includes('special leave benefits') ||
+        selectedType.name.toLowerCase().includes('slbw')
+    }
+    unavailableDates={unavailableDates}   // 👈 NEW
+/>
                         )}
 
                         {/* Wellness Leave Specific Error */}
@@ -917,6 +929,21 @@ const submit = (e) => {
                             </button>
                         </div>
                     </form>
+
+                    <LeaveRequestReviewModal
+    open={showReviewModal}
+    onClose={() => setShowReviewModal(false)}
+    onConfirm={confirmSubmit}
+    processing={processing}
+    leaveType={selectedType}
+    specialType={selectedSpecialType}
+    data={data}
+    calculatedDays={calculatedDays}
+    breakdown={breakdown}
+    employee={employee}
+    vlBalance={vlBalance}
+    slBalance={slBalance}
+/>
                 </div>
             </div>
         </EmployeeLayout>

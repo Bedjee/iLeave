@@ -76,6 +76,17 @@ export default function Index({ employees, leaveTypes, selectedEmployeeId, balan
         }
     };
 
+    // Export individual employee's balances
+    const handleExport = () => {
+        if (!selectedEmployee) return;
+        window.open(route('hrmo.leave-balances.export', selectedEmployee), '_blank');
+    };
+
+    // Export all employees' balances
+    const handleExportAll = () => {
+        window.open(route('hrmo.leave-balances.export-all'), '_blank');
+    };
+
     const submit = (e) => {
         e.preventDefault();
         if (!selectedEmployee) {
@@ -157,8 +168,29 @@ export default function Index({ employees, leaveTypes, selectedEmployeeId, balan
         <HRMOLayout>
             <Head title="Leave Balances" />
             <div className="space-y-6">
-                <h2 className="text-2xl font-bold" style={{ color: NAVY }}>Employee Leave Balances</h2>
-                <p className="text-sm text-gray-500">View and manage leave credit balances for each employee.</p>
+
+                {/* Header + Export All button */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 className="text-2xl font-bold" style={{ color: NAVY }}>Employee Leave Balances</h2>
+                        <p className="text-sm text-gray-500 mt-1">View and manage leave credit balances for each employee.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleExportAll}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition shadow-sm hover:shadow-md whitespace-nowrap"
+                        style={{ backgroundColor: GOLD, color: NAVY }}
+                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e6ac00')}
+                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = GOLD)}
+                        title="Download a master Excel file with all employees' current leave balances"
+                    >
+                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        </svg>
+                        Export All Employees
+                    </button>
+                </div>
 
                 {/* Employee Selection */}
                 <div className="rounded-2xl bg-white border p-5 shadow-sm" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
@@ -219,16 +251,34 @@ export default function Index({ employees, leaveTypes, selectedEmployeeId, balan
                         )}
                     </div>
 
-                    {/* Selected Employee Info */}
+                    {/* Selected Employee Info + Individual Export */}
                     {selectedEmployeeData && (
-                        <div className="mt-4 flex items-center gap-4 p-3 rounded-xl border" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
-                            <div className="flex size-10 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: GOLD_LIGHT, color: GOLD }}>
-                                {selectedEmployeeData.full_name?.charAt(0) || 'E'}
+                        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
+                            <div className="flex items-center gap-4">
+                                <div className="flex size-10 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: GOLD_LIGHT, color: GOLD }}>
+                                    {selectedEmployeeData.full_name?.charAt(0) || 'E'}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium" style={{ color: NAVY }}>{selectedEmployeeData.full_name}</p>
+                                    <p className="text-xs text-gray-500">{selectedEmployeeData.email} · {selectedEmployeeData.position || 'No position'}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium" style={{ color: NAVY }}>{selectedEmployeeData.full_name}</p>
-                                <p className="text-xs text-gray-500">{selectedEmployeeData.email} · {selectedEmployeeData.position || 'No position'}</p>
-                            </div>
+
+                            {/* Export to Excel — individual */}
+                            <button
+                                type="button"
+                                onClick={handleExport}
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition shadow-sm hover:shadow-md whitespace-nowrap"
+                                style={{ backgroundColor: NAVY }}
+                                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1a3a6a')}
+                                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = NAVY)}
+                                title="Download a complete Excel backup of this employee's leave balances and history"
+                            >
+                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                </svg>
+                                Export to Excel
+                            </button>
                         </div>
                     )}
                 </div>

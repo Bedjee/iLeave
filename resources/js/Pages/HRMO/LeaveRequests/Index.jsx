@@ -42,9 +42,9 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
         if (req.dates && req.dates.length > 0) {
             dateArray = req.dates.map(d => new Date(d.leave_date));
         } else if (req.start_date && req.end_date) {
-            return <span className="text-sm text-gray-600">{formatDate(req.start_date)} – {formatDate(req.end_date)}</span>;
+            return <span className="text-xs text-gray-600">{formatDate(req.start_date)} – {formatDate(req.end_date)}</span>;
         } else {
-            return <span className="text-sm text-gray-400">—</span>;
+            return <span className="text-xs text-gray-400">—</span>;
         }
 
         const groups = {};
@@ -108,7 +108,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
             if (entry.type === 'month') {
                 if (dayBoxes.length > 0) {
                     jsx.push(
-                        <div key={`${req.id}-month-${currentMonth}`} className="flex flex-wrap gap-1 mt-0.5">
+                        <div key={`${req.id}-month-${currentMonth}`} className="flex flex-wrap gap-0.5 mt-0.5">
                             {dayBoxes}
                         </div>
                     );
@@ -116,7 +116,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 }
                 currentMonth = entry.label;
                 jsx.push(
-                    <div key={`${req.id}-label-${idx}`} className="text-xs font-medium text-gray-500 mt-0.5 first:mt-0">
+                    <div key={`${req.id}-label-${idx}`} className="text-[10px] font-medium text-gray-500 mt-0.5 first:mt-0">
                         {entry.label}
                     </div>
                 );
@@ -124,7 +124,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 dayBoxes.push(
                     <div
                         key={`${req.id}-day-${entry.day}`}
-                        className="flex items-center justify-center min-w-[28px] h-7 px-1.5 bg-gray-100 border border-gray-200 rounded text-xs text-gray-700"
+                        className="flex items-center justify-center min-w-[22px] h-5 px-1 bg-gray-100 border border-gray-200 rounded text-[10px] text-gray-700"
                     >
                         {entry.day}
                     </div>
@@ -133,7 +133,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
         });
         if (dayBoxes.length > 0) {
             jsx.push(
-                <div key={`${req.id}-month-${currentMonth}-last`} className="flex flex-wrap gap-1 mt-0.5">
+                <div key={`${req.id}-month-${currentMonth}-last`} className="flex flex-wrap gap-0.5 mt-0.5">
                     {dayBoxes}
                 </div>
             );
@@ -145,7 +145,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 {hasMore && (
                     <button
                         onClick={toggleExpand}
-                        className="text-xs text-[#ffbf00] hover:underline mt-0.5 self-start font-medium"
+                        className="text-[10px] text-[#ffbf00] hover:underline mt-0.5 self-start font-medium"
                     >
                         {isExpanded ? 'Show less' : `+${flatEntries.filter(e => e.type === 'day').length - maxVisible} more`}
                     </button>
@@ -177,7 +177,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
             certified: 'Reschedule Certified',
         };
         return (
-            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${styles[reschedule.status]}`}>
+            <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${styles[reschedule.status]}`}>
                 {labels[reschedule.status] || reschedule.status}
             </span>
         );
@@ -190,7 +190,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 label: 'Monetization',
                 color: 'bg-amber-100 text-amber-800 border-amber-300',
                 icon: (
-                    <svg className="size-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="size-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 ),
@@ -201,7 +201,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 label: 'Terminal Leave',
                 color: 'bg-purple-100 text-purple-800 border-purple-300',
                 icon: (
-                    <svg className="size-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="size-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 ),
@@ -231,21 +231,21 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
     return (
         <HRMOLayout>
             <Head title="Leave Requests" />
-            <div className="space-y-4">
+            <div className="space-y-3">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h2 className="text-xl font-bold" style={{ color: NAVY }}>Leave Requests</h2>
-                        <p className="text-sm text-gray-500">Manage all employee leave requests</p>
+                        <h2 className="text-lg font-bold" style={{ color: NAVY }}>Leave Requests</h2>
+                        <p className="text-xs text-gray-500">Manage all employee leave requests</p>
                     </div>
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition text-sm font-medium"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition text-xs font-medium"
                         style={{ backgroundColor: NAVY_LIGHT, color: NAVY }}
                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = NAVY_LIGHT}
                     >
-                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
                         {showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -254,14 +254,14 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
 
                 {/* Filters */}
                 {showFilters && (
-                    <div className="rounded-xl p-4 border" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div className="rounded-xl p-3 border" style={{ backgroundColor: '#f9fafb', borderColor: 'rgba(15,42,82,0.08)' }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
                             <div>
-                                <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Status</label>
+                                <label className="block text-[11px] font-medium mb-1" style={{ color: NAVY }}>Status</label>
                                 <select
                                     value={data.status}
                                     onChange={(e) => setData('status', e.target.value)}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 transition"
                                     style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                     onFocus={(e) => (e.target.style.borderColor = GOLD)}
                                     onBlur={(e) => (e.target.style.borderColor = 'rgba(15,42,82,0.15)')}
@@ -275,24 +275,24 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Search Employee</label>
+                                <label className="block text-[11px] font-medium mb-1" style={{ color: NAVY }}>Search Employee</label>
                                 <input
                                     type="text"
                                     placeholder="Name or Email..."
                                     value={data.search}
                                     onChange={(e) => setData('search', e.target.value)}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 transition"
                                     style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                     onFocus={(e) => (e.target.style.borderColor = GOLD)}
                                     onBlur={(e) => (e.target.style.borderColor = 'rgba(15,42,82,0.15)')}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Leave Type</label>
+                                <label className="block text-[11px] font-medium mb-1" style={{ color: NAVY }}>Leave Type</label>
                                 <select
                                     value={data.leave_type}
                                     onChange={(e) => setData('leave_type', e.target.value)}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 transition"
                                     style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                     onFocus={(e) => (e.target.style.borderColor = GOLD)}
                                     onBlur={(e) => (e.target.style.borderColor = 'rgba(15,42,82,0.15)')}
@@ -304,35 +304,35 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Date From</label>
+                                <label className="block text-[11px] font-medium mb-1" style={{ color: NAVY }}>Date From</label>
                                 <input
                                     type="date"
                                     value={data.date_from}
                                     onChange={(e) => setData('date_from', e.target.value)}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 transition"
                                     style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                     onFocus={(e) => (e.target.style.borderColor = GOLD)}
                                     onBlur={(e) => (e.target.style.borderColor = 'rgba(15,42,82,0.15)')}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium mb-1" style={{ color: NAVY }}>Date To</label>
+                                <label className="block text-[11px] font-medium mb-1" style={{ color: NAVY }}>Date To</label>
                                 <input
                                     type="date"
                                     value={data.date_to}
                                     onChange={(e) => setData('date_to', e.target.value)}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                                    className="w-full rounded-lg border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 transition"
                                     style={{ borderColor: 'rgba(15,42,82,0.15)', backgroundColor: 'white' }}
                                     onFocus={(e) => (e.target.style.borderColor = GOLD)}
                                     onBlur={(e) => (e.target.style.borderColor = 'rgba(15,42,82,0.15)')}
                                 />
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex items-center gap-2 mt-2.5">
                             <button
                                 onClick={filter}
                                 disabled={processing}
-                                className="px-4 py-2 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
+                                className="px-3 py-1.5 text-white rounded-lg transition text-xs font-medium disabled:opacity-50"
                                 style={{ backgroundColor: GOLD }}
                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e6ac00'}
                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = GOLD}
@@ -341,7 +341,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                             </button>
                             <button
                                 onClick={resetFilters}
-                                className="px-4 py-2 rounded-lg transition text-sm font-medium"
+                                className="px-3 py-1.5 rounded-lg transition text-xs font-medium"
                                 style={{ backgroundColor: '#e5e7eb', color: NAVY }}
                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1d5db'}
                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
@@ -355,23 +355,23 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                 {/* Table */}
                 <div className="bg-white rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-gray-700">
+                        <table className="w-full text-xs text-left text-gray-700">
                             <thead style={{ backgroundColor: NAVY_LIGHT }}>
                                 <tr>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Employee</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Leave Type</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Dates</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-center" style={{ color: NAVY }}>Days</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Status</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Reschedule</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: NAVY }}>Filed</th>
-                                    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-center" style={{ color: NAVY }}>Actions</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Employee</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Leave Type</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Dates</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-center" style={{ color: NAVY }}>Days</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Status</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Reschedule</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: NAVY }}>Filed</th>
+                                    <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-center" style={{ color: NAVY }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
                                 {leaveRequests.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="px-4 py-8 text-center text-gray-500 text-sm">
+                                        <td colSpan="8" className="px-3 py-6 text-center text-gray-500 text-xs">
                                             No leave requests found.
                                         </td>
                                     </tr>
@@ -380,44 +380,44 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                                         const specialBadge = getSpecialRequestBadge(req);
                                         return (
                                             <tr key={req.id} className="hover:bg-gray-50 transition">
-                                                <td className="px-4 py-3">
+                                                <td className="px-3 py-2">
                                                     <div>
-                                                        <p className="font-medium text-gray-900 text-sm">{req.employee?.full_name}</p>
-                                                        <p className="text-xs text-gray-500">{req.employee?.email}</p>
+                                                        <p className="font-medium text-gray-900 text-xs leading-tight">{req.employee?.full_name}</p>
+                                                        <p className="text-[10px] text-gray-500 leading-tight mt-0.5">{req.employee?.email}</p>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="text-gray-700">{req.leave_type?.name || '—'}</span>
+                                                <td className="px-3 py-2">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="text-gray-700 text-xs">{req.leave_type?.name || '—'}</span>
                                                         {specialBadge && (
-                                                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${specialBadge.color}`}>
+                                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${specialBadge.color}`}>
                                                                 {specialBadge.icon}
                                                                 {specialBadge.label}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 max-w-[180px]">
+                                                <td className="px-3 py-2 max-w-[150px]">
                                                     {renderDates(req)}
                                                 </td>
-                                                <td className="px-4 py-3 text-center text-gray-700">
+                                                <td className="px-3 py-2 text-center text-gray-700 text-xs">
                                                     {getDaysDisplay(req)}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(req.status)}`}>
+                                                <td className="px-3 py-2">
+                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(req.status)}`}>
                                                         {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-3 py-2">
                                                     {getRescheduleBadge(req.active_reschedule) || (
-                                                        <span className="text-gray-400 text-xs">—</span>
+                                                        <span className="text-gray-400 text-[10px]">—</span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">{formatDate(req.date_filed)}</td>
-                                                <td className="px-4 py-3 text-center">
+                                                <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{formatDate(req.date_filed)}</td>
+                                                <td className="px-3 py-2 text-center">
                                                     <Link
                                                         href={route('hrmo.leave-requests.show', req.id)}
-                                                        className="text-[#ffbf00] hover:underline font-medium text-sm"
+                                                        className="text-[#ffbf00] hover:underline font-medium text-xs"
                                                     >
                                                         View
                                                     </Link>
@@ -430,11 +430,11 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                         </table>
                     </div>
                     {leaveRequests.links && (
-                        <div className="px-4 py-3 border-t flex flex-wrap justify-between items-center gap-2" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
-                            <p className="text-sm text-gray-500">
+                        <div className="px-3 py-2 border-t flex flex-wrap justify-between items-center gap-2" style={{ borderColor: 'rgba(15,42,82,0.06)' }}>
+                            <p className="text-xs text-gray-500">
                                 Showing {leaveRequests.from} to {leaveRequests.to} of {leaveRequests.total}
                             </p>
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5">
                                 {leaveRequests.links.map((link, idx) => (
                                     <a
                                         key={idx}
@@ -444,7 +444,7 @@ export default function Index({ leaveRequests, filters, leaveTypes }) {
                                             e.preventDefault();
                                             get(link.url, data, { preserveState: true });
                                         }}
-                                        className={`px-3 py-1 rounded text-sm transition ${
+                                        className={`px-2 py-0.5 rounded text-xs transition ${
                                             link.active
                                                 ? 'text-white font-medium'
                                                 : 'text-gray-700 hover:bg-gray-100'

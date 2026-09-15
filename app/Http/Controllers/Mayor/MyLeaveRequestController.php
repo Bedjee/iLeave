@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mayor;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Employee\StoreLeaveRequestRequest;
+use App\Http\Controllers\Concerns\HasUnavailableDates;
 use App\Models\LeaveBalance;
 use App\Models\LeaveType;
 use App\Models\LeaveRequest;
@@ -17,6 +18,10 @@ use Inertia\Inertia;
 
 class MyLeaveRequestController extends Controller
 {
+
+use HasUnavailableDates;
+
+
     public function index()
     {
         $mayor = Auth::user();
@@ -57,19 +62,22 @@ class MyLeaveRequestController extends Controller
         $vlBalance = $this->getBalanceByLeaveTypeName($employee->id, 'Vacation Leave');
         $slBalance = $this->getBalanceByLeaveTypeName($employee->id, 'Sick Leave');
 
-        return Inertia::render('Mayor/MyLeaveRequests/Create', [
-            'leaveTypes' => $leaveTypes,
-            'balances' => $balances,
-            'employee' => [
-                'name' => $employee->full_name,
-                'position' => $employee->position,
-                'department' => $employee->department?->department_name,
-            ],
-            'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
-            'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
-            'vlBalance' => $vlBalance,
-            'slBalance' => $slBalance,
-        ]);
+       return Inertia::render('Mayor/MyLeaveRequests/Create', [
+    'leaveTypes' => $leaveTypes,
+    'balances' => $balances,
+    'employee' => [
+        'name' => $employee->full_name,
+        'position' => $employee->position,
+        'department' => $employee->department?->department_name,
+    ],
+    'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
+    'hasTakenAdoptionLeave' => $hasTakenAdoptionLeave,
+    'vlBalance' => $vlBalance,
+    'slBalance' => $slBalance,
+    'unavailableDates' => $this->getUnavailableDates($employee->id), // 👈
+]);
+
+
     }
 
     public function store(StoreLeaveRequestRequest $request)
@@ -274,9 +282,9 @@ class MyLeaveRequestController extends Controller
             'detail' => $data['detail'] ?? [],
         ];
 
-        LeaveRequestService::createLeaveRequest($leaveRequestData, $dates, $employee);
+       $leaveRequest = LeaveRequestService::createLeaveRequest($leaveRequestData, $dates, $employee);
 
-        event(new LeaveRequestCreated($leaveRequest));
+event(new LeaveRequestCreated($leaveRequest));
 
 
         return redirect()->route('mayor.my-leave-requests.index')

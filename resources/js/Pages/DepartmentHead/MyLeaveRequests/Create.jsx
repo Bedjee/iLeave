@@ -141,7 +141,7 @@ function useLeaveValidation(
 }
 
 // ---------- Main Component ----------
-export default function Create({ leaveTypes, balances, employee, hasTakenMaternityLeave, hasTakenAdoptionLeave, vlBalance, slBalance }) {
+export default function Create({ leaveTypes, balances, employee, hasTakenMaternityLeave, hasTakenAdoptionLeave, vlBalance, slBalance, unavailableDates = [] }) {
     const { data, setData, processing, errors } = useForm({
         request_type: 'leave',
         leave_type_id: '',
@@ -427,17 +427,18 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
                     <form onSubmit={submit} className="mt-6 space-y-4">
                         {selectedType && (
                             <LeaveDateSelector
-                                leaveType={selectedType}
-                                data={data}
-                                setData={setData}
-                                errors={{ ...errors, ...frontendErrors }}
-                                studyMode={selectedType.name.toLowerCase().includes('study')}
-                                studyPurpose={data.detail.study_purpose}
-                                rehabMode={selectedType.name.toLowerCase().includes('rehabilitation')}
-                                maternityMode={selectedType.name.toLowerCase().includes('maternity')}
-                                adoptionMode={selectedType.name.toLowerCase().includes('adoption')}
-                                slbwMode={selectedType.name.toLowerCase().includes('special leave benefits') || selectedType.name.toLowerCase().includes('slbw')}
-                            />
+    leaveType={selectedType}
+    data={data}
+    setData={setData}
+    errors={{ ...errors, ...frontendErrors }}
+    studyMode={selectedType.name.toLowerCase().includes('study')}
+    studyPurpose={data.detail.study_purpose}
+    rehabMode={selectedType.name.toLowerCase().includes('rehabilitation')}
+    maternityMode={selectedType.name.toLowerCase().includes('maternity')}
+    adoptionMode={selectedType.name.toLowerCase().includes('adoption')}
+    slbwMode={selectedType.name.toLowerCase().includes('special leave benefits') || selectedType.name.toLowerCase().includes('slbw')}
+    unavailableDates={unavailableDates}   
+/>
                         )}
 
                         {selectedType && calculatedDays > 0 && (
