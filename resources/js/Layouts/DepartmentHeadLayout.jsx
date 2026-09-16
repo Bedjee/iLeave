@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import FlashMessage from '@/Components/FlashMessage';
+
 import { useEffect, useState } from 'react';
 
 export default function DepartmentHeadLayout({ children }) {

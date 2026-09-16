@@ -17,12 +17,29 @@ export default function LoadingOverlay() {
         };
     }, []);
 
+    // Lock body scroll while the overlay is visible
+    useEffect(() => {
+        if (!loading) return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prevOverflow;
+        };
+    }, [loading]);
+
     if (!loading) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+        <div
+            // z-[9999] guarantees we sit above the sidebar (z-50),
+            // mobile overlay (z-40), and the logout modal (z-[60]).
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading"
+        >
             <div className="flex flex-col items-center">
-                {/* Dual‑arc spinner */}
+                {/* Dual-arc spinner */}
                 <div className="relative w-16 h-16 md:w-20 md:h-20">
                     <svg
                         className="w-full h-full animate-spin"
@@ -30,7 +47,7 @@ export default function LoadingOverlay() {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
-                        {/* Blue arc (large) */}
+                        {/* Navy arc (large) */}
                         <circle
                             cx="32"
                             cy="32"
@@ -41,7 +58,7 @@ export default function LoadingOverlay() {
                             strokeDasharray="80 90"
                             strokeDashoffset="10"
                         />
-                        {/* Yellow arc (small) */}
+                        {/* Gold arc (small) */}
                         <circle
                             cx="32"
                             cy="32"
@@ -54,7 +71,9 @@ export default function LoadingOverlay() {
                         />
                     </svg>
                 </div>
-                <span className="mt-4 text-sm text-white/70 font-medium tracking-wide">Loading...</span>
+                <span className="mt-4 text-sm text-white/70 font-medium tracking-wide">
+                    Loading…
+                </span>
             </div>
         </div>
     );
