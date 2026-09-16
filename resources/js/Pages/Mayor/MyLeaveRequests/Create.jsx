@@ -11,6 +11,7 @@ import RehabLeaveFields from '@/Components/Employee/RehabLeaveFields';
 import MaternityLeaveFields from '@/Components/Employee/MaternityLeaveFields';
 import AdoptionLeaveFields from '@/Components/Employee/AdoptionLeaveFields';
 import SpecialLeaveFields from '@/Components/Employee/SpecialLeaveFields';
+import LeaveRequestReviewModal from '@/Components/Employee/LeaveRequestReviewModal';
 
 // ============================================================
 // Helper: Calculate Pay Breakdown (Vacation/Sick Only)
@@ -353,6 +354,7 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
     const [calculatedDays, setCalculatedDays] = useState(0);
     const [selectedSpecialType, setSelectedSpecialType] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     // Track selected leave type
     useEffect(() => {
@@ -484,29 +486,34 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
         }
     };
 
-    const submit = (e) => {
-        e.preventDefault();
-        if (!isValid) return;
+const submit = (e) => {
+    e.preventDefault();
+    if (!isValid) return;
+    setShowReviewModal(true);
+};
 
-        let payload = { ...data };
-        if (selectedSpecialType) {
-            // For special requests, remove unnecessary fields
-            delete payload.leave_type_id;
-            delete payload.start_date;
-            delete payload.end_date;
-            delete payload.dates;
-            payload.request_type = selectedSpecialType;
-        } else {
-            // Regular leave – clean dates
-            payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
-            payload.request_type = 'leave';
-        }
+const confirmSubmit = () => {
+    let payload = { ...data };
+    if (selectedSpecialType) {
+        delete payload.leave_type_id;
+        delete payload.start_date;
+        delete payload.end_date;
+        delete payload.dates;
+        payload.request_type = selectedSpecialType;
+    } else {
+        payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
+        payload.request_type = 'leave';
+    }
 
-        router.post(route('mayor.my-leave-requests.store'), payload, {
-            onSuccess: () => {},
-            onError: (err) => console.error('Submission errors:', err),
-        });
-    };
+    router.post(route('mayor.my-leave-requests.store'), payload, {
+        onSuccess: () => setShowReviewModal(false),
+        onError: (err) => {
+            console.error('Submission errors:', err);
+            setShowReviewModal(false);
+        },
+        onFinish: () => setShowReviewModal(false),
+    });
+};
 
     const renderLeaveTypeFields = () => {
         if (!selectedType) return null;
@@ -817,6 +824,23 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
                             </button>
                         </div>
                     </form>
+
+                    <LeaveRequestReviewModal
+    open={showReviewModal}
+    onClose={() => setShowReviewModal(false)}
+    onConfirm={confirmSubmit}
+    processing={processing}
+    leaveType={selectedType}
+    specialType={selectedSpecialType}
+    data={data}
+    calculatedDays={calculatedDays}
+    breakdown={breakdown}
+    employee={employee}
+    vlBalance={vlBalance}
+    slBalance={slBalance}
+/>
+
+
                 </div>
             </div>
         </MayorLayout>

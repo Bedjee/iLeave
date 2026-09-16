@@ -5,6 +5,7 @@ use App\Models\LeaveBalance;
 use App\Models\LeaveType;
 use App\Models\Employee;
 
+use App\Http\Controllers\Shared\MyBalanceController;
 
 use App\Http\Controllers\DepartmentHead\DashboardController as DepartmentHeadDashboard;
 use App\Http\Controllers\DepartmentHead\LeaveRequestController as DepartmentHeadLeaveRequestController;
@@ -99,6 +100,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/my-leave-requests/create', [MyLeaveRequestController::class, 'create'])->name('my-leave-requests.create');
     Route::post('/my-leave-requests', [MyLeaveRequestController::class, 'store'])->name('my-leave-requests.store');
     Route::get('/my-leave-requests/{leaveRequest}', [MyLeaveRequestController::class, 'show'])->name('my-leave-requests.show');
+
+    Route::get('/my-leave-balances', [MyBalanceController::class, 'index'])
+    ->name('my-leave-balances.index');
+    Route::get('/my-leave-balances/{leaveType}/history', [MyBalanceController::class, 'history'])
+    ->name('my-leave-balances.history');
 });
 
 
@@ -200,6 +206,13 @@ Route::prefix('department-head')->name('department-head.')->middleware('role:dep
     Route::get('/my-leave-requests/create', [DepartmentRequestController::class, 'create'])->name('my-leave-requests.create');
     Route::post('/my-leave-requests', [DepartmentRequestController::class, 'store'])->name('my-leave-requests.store');
     Route::get('/my-leave-requests/{leaveRequest}', [DepartmentRequestController::class, 'show'])->name('my-leave-requests.show');
+
+    Route::get('/my-leave-balances', [MyBalanceController::class, 'index'])
+    ->name('my-leave-balances.index');
+    Route::get('/my-leave-balances/{leaveType}/history', [MyBalanceController::class, 'history'])
+    ->name('my-leave-balances.history');
+
+
 });
 
 
@@ -230,6 +243,11 @@ Route::post('/admin-leave-requests/{leaveRequest}/reject', [AdminLeaveRequestCon
 
     Route::get('/department-overview', [DepartmentOverviewController::class, 'index'])
     ->name('department-overview.index');
+
+    Route::get('/my-leave-balances', [MyBalanceController::class, 'index'])
+    ->name('my-leave-balances.index');
+    Route::get('/my-leave-balances/{leaveType}/history', [MyBalanceController::class, 'history'])
+    ->name('my-leave-balances.history');
 
         });
 

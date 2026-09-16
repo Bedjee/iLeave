@@ -33,6 +33,14 @@ const initials = (name = '') =>
         .join('')
         .toUpperCase() || '?';
 
+
+        // Works whether the caller passes { name } (Admin/Mayor) or a full Employee
+// model with a `full_name` accessor (Department Head).
+const getEmployeeName = (employee) =>
+    employee?.name || employee?.full_name || 'Employee';
+
+
+
 // ---------- Section wrapper ----------
 function Section({ icon: Icon, title, children }) {
     return (
@@ -355,32 +363,31 @@ export default function LeaveRequestReviewModal({
                 {/* Body — scrollable */}
                 <div className="flex-1 overflow-y-auto px-5 py-4">
                     {/* Employee card */}
-                    <div
-                        className="rounded-xl border p-3.5 mb-3 flex items-center gap-3"
-                        style={{
-                            borderColor: 'rgba(15,42,82,0.08)',
-                            backgroundColor: 'rgba(15,42,82,0.02)',
-                        }}
-                    >
-                        <div
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
-                            style={{
-                                backgroundColor: 'rgba(15,42,82,0.08)',
-                                color: NAVY,
-                            }}
-                        >
-                            {initials(employee?.name)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                                {employee?.name || 'Employee'}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                                {employee?.position}
-                                {employee?.department && ` · ${employee.department}`}
-                            </p>
-                        </div>
-                    </div>
+                    {(() => {
+    const name = getEmployeeName(employee);
+    return (
+        <>
+            <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                style={{
+                    backgroundColor: 'rgba(15,42,82,0.08)',
+                    color: NAVY,
+                }}
+            >
+                {initials(name)}
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                    {name}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                    {employee?.position}
+                    {employee?.department && ` · ${employee.department}`}
+                </p>
+            </div>
+        </>
+    );
+})()}
 
                     {/* Type chip */}
                     <div className="mb-4">

@@ -78,16 +78,23 @@ class MyLeaveRequestController extends Controller
         $hasTakenMaternityLeave = false;
         $hasTakenAdoptionLeave  = false;
 
-        return Inertia::render('DepartmentHead/MyLeaveRequests/Create', [
-            'leaveTypes'             => $leaveTypes,
-            'balances'               => $balances,
-            'employee'               => $employee,
-            'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
-            'hasTakenAdoptionLeave'  => $hasTakenAdoptionLeave,
-            'vlBalance'              => $vlBalance,
-            'slBalance'              => $slBalance,
-            'unavailableDates'       => $this->getUnavailableDates($employee->id),
-        ]);
+       return Inertia::render('DepartmentHead/MyLeaveRequests/Create', [
+    'leaveTypes'             => $leaveTypes,
+    'balances'               => $balances,
+    'employee'               => [
+        'name'       => $employee->full_name,
+        'position'   => $employee->position,
+        'department' => $employee->department?->department_name,
+    ],
+    'hasTakenMaternityLeave' => $hasTakenMaternityLeave,
+    'hasTakenAdoptionLeave'  => $hasTakenAdoptionLeave,
+    'vlBalance'              => $vlBalance,
+    'slBalance'              => $slBalance,
+    'unavailableDates'       => $this->getUnavailableDates($employee->id),
+]);
+
+
+
     }
 
     /**

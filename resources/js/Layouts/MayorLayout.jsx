@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, BarChart3, Building2, LogOut, User, Calendar, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Building2, LogOut, User, Calendar, CheckSquare, Wallet } from 'lucide-react';
 
 export default function MayorLayout({ children }) {
     const { url } = usePage();
@@ -168,6 +168,18 @@ export default function MayorLayout({ children }) {
                                 </svg>
                                 <span className="font-medium">My Leave Requests</span>
                             </Link>
+
+                            <Link
+    href={route('mayor.my-leave-balances.index')}
+    className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition text-sm ${
+        isActive('mayor.my-leave-balances')
+            ? 'bg-white text-[#B91C1C] shadow-lg'
+            : 'hover:bg-white/10 hover:text-white'
+    }`}
+>
+    <Wallet className="w-4 h-4" />
+    <span className="font-medium">My Leave Balances</span>
+</Link>
                         </div>
                     </div>
 

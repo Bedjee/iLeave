@@ -53,6 +53,7 @@ export default function AdminLayout({ children }) {
         users: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />,
         'file-text': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
         user: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />,
+        wallet: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />,
     };
 
     const renderIcon = (name) => (
@@ -234,7 +235,26 @@ export default function AdminLayout({ children }) {
         </div>
     </div>
 
+    <Link
+    href={route('admin.my-leave-balances.index')}
+    className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition ${
+        isActive('admin.my-leave-balances') ? 'font-medium' : 'hover:bg-gray-50'
+    }`}
+    style={
+        isActive('admin.my-leave-balances')
+            ? { backgroundColor: 'rgba(255,191,0,0.12)', color: GOLD }
+            : { color: NAVY }
+    }
+>
+    <span className="flex items-center gap-3">
+        {renderIcon('wallet')}
+        <span className="text-sm">My Leave Balances</span>
+    </span>
+</Link>
+
 </nav>
+
+
 
                 {/* Logout */}
                 <div className="border-t px-3 py-4" style={{ borderColor: 'rgba(15,42,82,0.08)' }}>

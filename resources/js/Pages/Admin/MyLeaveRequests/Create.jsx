@@ -11,6 +11,7 @@ import RehabLeaveFields from '@/Components/Employee/RehabLeaveFields';
 import MaternityLeaveFields from '@/Components/Employee/MaternityLeaveFields';
 import AdoptionLeaveFields from '@/Components/Employee/AdoptionLeaveFields';
 import SpecialLeaveFields from '@/Components/Employee/SpecialLeaveFields';
+import LeaveRequestReviewModal from '@/Components/Employee/LeaveRequestReviewModal';
 
 // Helper functions (same as Employee)
 function getPayBreakdown(selectedType, requestedDays, balances) {
@@ -102,6 +103,7 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
     const [calculatedDays, setCalculatedDays] = useState(0);
     const [selectedSpecialType, setSelectedSpecialType] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     useEffect(() => {
         if (selectedSpecialType) {
@@ -219,26 +221,34 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
     };
 
     const submit = (e) => {
-        e.preventDefault();
-        if (!isValid) return;
+    e.preventDefault();
+    if (!isValid) return;
+    setShowReviewModal(true);
+};
 
-        let payload = { ...data };
-        if (selectedSpecialType) {
-            delete payload.leave_type_id;
-            delete payload.start_date;
-            delete payload.end_date;
-            delete payload.dates;
-            payload.request_type = selectedSpecialType;
-        } else {
-            payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
-            payload.request_type = 'leave';
-        }
+const confirmSubmit = () => {
+    let payload = { ...data };
+    if (selectedSpecialType) {
+        delete payload.leave_type_id;
+        delete payload.start_date;
+        delete payload.end_date;
+        delete payload.dates;
+        payload.request_type = selectedSpecialType;
+    } else {
+        payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
+        payload.request_type = 'leave';
+    }
 
-        router.post(route('admin.my-leave-requests.store'), payload, {
-            onSuccess: () => {},
-            onError: (err) => console.error('Submission errors:', err),
-        });
-    };
+    router.post(route('admin.my-leave-requests.store'), payload, {
+        onSuccess: () => setShowReviewModal(false),
+        onError: (err) => {
+            console.error('Submission errors:', err);
+            setShowReviewModal(false);
+        },
+        onFinish: () => setShowReviewModal(false),
+    });
+};
+
 
     const renderLeaveTypeFields = () => {
         if (!selectedType) return null;
@@ -400,6 +410,21 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
                             <button type="submit" disabled={processing || !isValid} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">Submit Leave Request</button>
                         </div>
                     </form>
+
+                    <LeaveRequestReviewModal
+    open={showReviewModal}
+    onClose={() => setShowReviewModal(false)}
+    onConfirm={confirmSubmit}
+    processing={processing}
+    leaveType={selectedType}
+    specialType={selectedSpecialType}
+    data={data}
+    calculatedDays={calculatedDays}
+    breakdown={breakdown}
+    employee={employee}
+    vlBalance={vlBalance}
+    slBalance={slBalance}
+/>
                 </div>
             </div>
         </AdminLayout>

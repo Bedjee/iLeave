@@ -11,6 +11,7 @@ import RehabLeaveFields from '@/Components/Employee/RehabLeaveFields';
 import MaternityLeaveFields from '@/Components/Employee/MaternityLeaveFields';
 import AdoptionLeaveFields from '@/Components/Employee/AdoptionLeaveFields';
 import SpecialLeaveFields from '@/Components/Employee/SpecialLeaveFields';
+import LeaveRequestReviewModal from '@/Components/Employee/LeaveRequestReviewModal';
 
 // ---------- Helper ----------
 function getPayBreakdown(selectedType, requestedDays, balances) {
@@ -172,6 +173,7 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
     const [calculatedDays, setCalculatedDays] = useState(0);
     const [selectedSpecialType, setSelectedSpecialType] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     // Sync selectedType with leave_type_id
     useEffect(() => {
@@ -290,11 +292,15 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
         }
     };
 
-    // ---------- SUBMIT ----------
-   const submit = (e) => {
+// ---------- SUBMIT: validate, then open review modal ----------
+const submit = (e) => {
     e.preventDefault();
     if (!isValid) return;
+    setShowReviewModal(true);
+};
 
+// ---------- CONFIRM: user pressed "Confirm & Submit" in the modal ----------
+const confirmSubmit = () => {
     let payload = { ...data };
 
     // --- Special requests ---
@@ -303,11 +309,11 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
         delete payload.start_date;
         delete payload.end_date;
         delete payload.dates;
-        payload.request_type = selectedSpecialType; // 'monetization' or 'terminal_leave'
+        payload.request_type = selectedSpecialType;
     } else {
         // --- Regular leave ---
         payload.dates = (data.dates || []).filter(d => d && d.trim() !== '');
-        payload.request_type = 'leave';                        // ✅ explicitly set
+        payload.request_type = 'leave';
         payload.number_of_days = calculatedDays;
 
         if (selectedType && selectedType.date_selection_type === 'specific_dates') {
@@ -326,19 +332,20 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
         }
     }
 
-    // 🔥 FINAL SAFETY: Never send null/undefined/empty for request_type
+    // Safety net for request_type
     if (!payload.request_type || payload.request_type === 'null' || payload.request_type === '') {
         payload.request_type = 'leave';
     }
 
-    console.log('📦 FINAL PAYLOAD:', payload);
-
     router.post(route('department-head.my-leave-requests.store'), payload, {
-        onSuccess: () => {},
-        onError: (err) => console.error('❌ Submission errors:', err),
+        onSuccess: () => setShowReviewModal(false),
+        onError: (err) => {
+            console.error('Submission errors:', err);
+            setShowReviewModal(false);
+        },
+        onFinish: () => setShowReviewModal(false),
     });
 };
-
 
 
 
@@ -506,6 +513,21 @@ export default function Create({ leaveTypes, balances, employee, hasTakenMaterni
                             </button>
                         </div>
                     </form>
+
+                    <LeaveRequestReviewModal
+    open={showReviewModal}
+    onClose={() => setShowReviewModal(false)}
+    onConfirm={confirmSubmit}
+    processing={processing}
+    leaveType={selectedType}
+    specialType={selectedSpecialType}
+    data={data}
+    calculatedDays={calculatedDays}
+    breakdown={breakdown}
+    employee={employee}
+    vlBalance={vlBalance}
+    slBalance={slBalance}
+/>
                 </div>
             </div>
         </DepartmentHeadLayout>
