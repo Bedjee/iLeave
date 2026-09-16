@@ -552,7 +552,7 @@ if ($isMayorPreview) {
                         <span class="text-bold">6. B DETAILS OF LEAVE</span><br /><br />
 
                         <div style="margin-bottom:4px;">
-                            <span class="text-bold">In case of Vacation Leave:</span><br />
+                            <span class="text-bold">In case of Vacation Leave:</span><br /><br />
                             <div class="flex">
                                 <span class="checkbox {{ $vacationLocation === 'within_philippines' ? 'checked' : '' }}">{!! $vacationLocation === 'within_philippines' ? '✓' : '' !!}</span>
                                 Within the Philippines : <span class="field-value field-value-sm">{{ ($vacationLocation === 'within_philippines' && $vacationLocationText) ? $vacationLocationText : '______________' }}</span>
@@ -564,7 +564,7 @@ if ($isMayorPreview) {
                         </div>
 
                         <div style="margin-bottom:4px;">
-                            <span class="text-bold">In case of Sick Leave:</span><br />
+                            <span class="text-bold">In case of Sick Leave:</span><br /><br />
                             <div class="flex">
                                 <span class="checkbox {{ $sickType === 'in_hospital' ? 'checked' : '' }}">{!! $sickType === 'in_hospital' ? '✓' : '' !!}</span>
                                 In Hospital (Specify illness): <span class="field-value field-value-sm">{{ ($sickType === 'in_hospital' && $illness) ? $illness : '______________' }}</span>
@@ -581,7 +581,7 @@ if ($isMayorPreview) {
                         </div>
 
                         <div style="margin-bottom:4px;">
-                            <span class="text-bold">In case of Study Leave:</span><br />
+                            <span class="text-bold">In case of Study Leave:</span><br /><br />
                             <div class="flex">
                                 <span class="checkbox {{ $studyPurpose === 'masters_completion' ? 'checked' : '' }}">{!! $studyPurpose === 'masters_completion' ? '✓' : '' !!}</span>
                                 Completion of Master's
@@ -620,7 +620,7 @@ if ($isMayorPreview) {
                         </div>
                     </td>
                     <td>
-                        <span class="text-bold">6. D COMMUTATION</span><br />
+                        <span class="text-bold">6. D COMMUTATION</span><br /><br />
                         <div class="flex">
                             <span class="checkbox {{ $leaveRequest->commutation === 'not_requested' ? 'checked' : '' }}">{!! $leaveRequest->commutation === 'not_requested' ? '✓' : '' !!}</span>
                             Not Requested
@@ -688,7 +688,7 @@ if ($isMayorPreview) {
                     </td>
 
                     <td style="width:50%;">
-                        <span class="text-bold">7. B RECOMMENDATION</span><br />
+                        <span class="text-bold">7. B RECOMMENDATION</span><br /><br />
                         <div class="flex"><span class="checkbox checked">✓</span> For approval</div>
                         <div class="flex">
                             <span class="checkbox"></span> For disapproval due to:

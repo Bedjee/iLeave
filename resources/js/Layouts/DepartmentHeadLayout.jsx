@@ -8,7 +8,6 @@ export default function DepartmentHeadLayout({ children }) {
     const auth = props.auth || {};
     const user = auth.user || null;
 
-    // ✅ Destructure both pending counts from props
     const pendingLeaveRequestsCount = props.pendingLeaveRequestsCount || 0;
     const pendingReschedulesCount = props.pendingReschedulesCount || 0;
 
@@ -35,25 +34,37 @@ export default function DepartmentHeadLayout({ children }) {
         };
     }, [showLogoutModal]);
 
-    // Navigation items with badges
-   const navItems = [
-    { route: 'department-head.dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { route: 'department-head.team', label: 'Team', icon: 'users' },
-    {
-        route: 'department-head.leave-requests.index',
-        label: 'Approvals',
-        icon: 'clipboard-check',
-        badge: pendingLeaveRequestsCount
-    },
-    {
-        route: 'department-head.reschedules.index',
-        label: 'Reschedules',
-        icon: 'refresh',
-        badge: pendingReschedulesCount
-    },
-    { route: 'department-head.my-leave-requests.index', label: 'My Leave Requests', icon: 'file-text' },
-    { route: 'department-head.my-leave-balances.index', label: 'My Leave Balances', icon: 'wallet' }, // 👈 add this
-];
+    // ============================================================
+    // Navigation groups — two clearly separated sections
+    // ============================================================
+    const navGroups = [
+        {
+            label: 'My Department',
+            items: [
+                { route: 'department-head.dashboard', label: 'Dashboard', icon: 'dashboard' },
+                { route: 'department-head.team', label: 'Team', icon: 'users' },
+                {
+                    route: 'department-head.leave-requests.index',
+                    label: 'Approvals',
+                    icon: 'clipboard-check',
+                    badge: pendingLeaveRequestsCount,
+                },
+                {
+                    route: 'department-head.reschedules.index',
+                    label: 'Reschedules',
+                    icon: 'refresh',
+                    badge: pendingReschedulesCount,
+                },
+            ],
+        },
+        {
+            label: 'Personal',
+            items: [
+                { route: 'department-head.my-leave-requests.index', label: 'My Leave Requests', icon: 'file-text' },
+                { route: 'department-head.my-leave-balances.index', label: 'My Leave Balances', icon: 'wallet' },
+            ],
+        },
+    ];
 
     // Icon map
     const iconMap = {
@@ -64,7 +75,6 @@ export default function DepartmentHeadLayout({ children }) {
         'file-text': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
         wallet: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />,
     };
-
 
     const renderIcon = (name) => (
         <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,38 +114,54 @@ export default function DepartmentHeadLayout({ children }) {
 
                 <div className="border-b" style={{ borderColor: 'rgba(15,42,82,0.08)' }}></div>
 
-                {/* Navigation */}
+                {/* ===== NAVIGATION (grouped) ===== */}
                 <div className="flex-1 overflow-y-auto px-3 py-4">
-                    <nav className="space-y-1">
-                        {navItems.map((item) => {
-                            const active = isActive(item.route.replace('department-head.', ''));
-                            return (
-                                <Link
-                                    key={item.route}
-                                    href={route(item.route)}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition ${
-                                        active
-                                            ? 'font-medium'
-                                            : 'hover:bg-gray-50'
-                                    }`}
-                                    style={
-                                        active
-                                            ? { backgroundColor: GOLD_LIGHT, color: GOLD }
-                                            : { color: NAVY }
-                                    }
+                    <nav className="space-y-5">
+                        {navGroups.map((group) => (
+                            <div key={group.label}>
+                                {/* Group header */}
+                                <div
+                                    className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest"
+                                    style={{ color: 'rgba(15,42,82,0.45)' }}
                                 >
-                                    <span className="flex items-center gap-3">
-                                        {renderIcon(item.icon)}
-                                        <span className="text-sm font-medium">{item.label}</span>
-                                    </span>
-                                    {item.badge > 0 && (
-                                        <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium text-white rounded-full" style={{ backgroundColor: GOLD }}>
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </Link>
-                            );
-                        })}
+                                    {group.label}
+                                </div>
+
+                                {/* Group items */}
+                                <div className="space-y-1">
+                                    {group.items.map((item) => {
+                                        const active = isActive(item.route.replace('department-head.', ''));
+                                        return (
+                                            <Link
+                                                key={item.route}
+                                                href={route(item.route)}
+                                                className={`flex items-center justify-between px-3 py-2 rounded-lg transition ${
+                                                    active ? 'font-medium' : 'hover:bg-gray-50'
+                                                }`}
+                                                style={
+                                                    active
+                                                        ? { backgroundColor: GOLD_LIGHT, color: GOLD }
+                                                        : { color: NAVY }
+                                                }
+                                            >
+                                                <span className="flex items-center gap-3">
+                                                    {renderIcon(item.icon)}
+                                                    <span className="text-sm font-medium">{item.label}</span>
+                                                </span>
+                                                {item.badge > 0 && (
+                                                    <span
+                                                        className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium text-white rounded-full"
+                                                        style={{ backgroundColor: GOLD }}
+                                                    >
+                                                        {item.badge}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
                     </nav>
                 </div>
 
@@ -229,14 +255,12 @@ export default function DepartmentHeadLayout({ children }) {
             {/* Logout Confirmation Modal */}
             {showLogoutModal && (
                 <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center">
-                    {/* Backdrop */}
                     <div
                         className="fixed inset-0 bg-black/50"
                         onClick={() => setShowLogoutModal(false)}
                         aria-hidden="true"
                     />
 
-                    {/* Panel */}
                     <div
                         role="dialog"
                         aria-modal="true"
