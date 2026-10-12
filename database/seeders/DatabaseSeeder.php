@@ -46,5 +46,11 @@ class DatabaseSeeder extends Seeder
                 $adminOffice->save();
             }
         }
+
+
+         $this->call([
+        BootstrapAdminSeeder::class,
+        // ...your existing seeders
+    ]);
     }
 }

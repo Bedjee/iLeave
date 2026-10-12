@@ -14,6 +14,8 @@ import {
     AlertCircle,
     ChevronLeft,
     ChevronRight,
+    UserPlus,
+    Clock,
 } from 'lucide-react';
 
 const NAVY = '#0F2A52';
@@ -124,8 +126,47 @@ function ActionMenu({ employee, onAction }) {
     );
 }
 
+// ---------- Pending onboarding banner ----------
+function PendingBanner({ count }) {
+    if (!count || count < 1) return null;
+
+    return (
+        <div
+            className="rounded-xl border p-4 flex items-start gap-3"
+            style={{
+                backgroundColor: 'rgba(255,191,0,0.08)',
+                borderColor: 'rgba(255,191,0,0.4)',
+            }}
+        >
+            <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: 'rgba(255,191,0,0.2)', color: '#B45309' }}
+            >
+                <UserPlus className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-900">
+                    {count} user{count === 1 ? '' : 's'} waiting for onboarding
+                </p>
+                <p className="mt-0.5 text-xs text-amber-800">
+                    These users have signed in via the Opol Portal but don't have an
+                    employee profile in iLeave yet.
+                </p>
+            </div>
+            <Link
+                href={route('hrmo.employees.pending')}
+                className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:shadow-md transition"
+                style={{ backgroundColor: '#B45309' }}
+            >
+                <Clock className="w-3.5 h-3.5" />
+                View
+            </Link>
+        </div>
+    );
+}
+
 // ---------- Page ----------
-export default function Index({ employees, filters, departments }) {
+export default function Index({ employees, filters, departments, pendingCount = 0 }) {
     const { data, setData, get, processing } = useForm({
         search: filters.search || '',
         department: filters.department || '',
@@ -167,6 +208,9 @@ export default function Index({ employees, filters, departments }) {
         <HRMOLayout>
             <Head title="Employees" />
             <div className="space-y-5">
+
+                {/* ================= Pending onboarding banner ================= */}
+                <PendingBanner count={pendingCount} />
 
                 {/* ================= Header ================= */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -1,10 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-
+import FlashMessage from '@/Components/FlashMessage';
 import { useEffect, useState } from 'react';
 
 export default function DepartmentHeadLayout({ children }) {
     const { url, props } = usePage();
     const { flash } = props;
+
     const auth = props.auth || {};
     const user = auth.user || null;
 

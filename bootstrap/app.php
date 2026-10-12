@@ -20,9 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Register your role middleware alias
         $middleware->alias([
-            'role' => CheckRole::class,
-             'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
-        ]);
+    'role'             => CheckRole::class,
+    'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
+    'employee.profile' => \App\Http\Middleware\EnsureEmployeeProfileExists::class,
+]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

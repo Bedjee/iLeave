@@ -44,13 +44,20 @@ class EmployeeController extends Controller
 
         $employees = $query->paginate(20)->withQueryString();
         $departments = Department::select('id', 'department_name')->orderBy('department_name')->get();
+ $pendingCount = User::query()
+        ->whereNotNull('portal_user_id')
+        ->whereDoesntHave('employee')
+        ->count();
 
-        return Inertia::render('HRMO/Employees/Index', [
-            'employees' => $employees,
-            'filters' => $request->only(['search', 'department', 'status']),
-            'departments' => $departments,
-        ]);
-    }
+    return Inertia::render('HRMO/Employees/Index', [
+        'employees'    => $employees,
+        'filters'      => $request->only(['search', 'department', 'status']),
+        'departments'  => $departments,
+        'pendingCount' => $pendingCount,
+    ]);
+}
+
+
 
     public function create()
     {
@@ -349,4 +356,128 @@ class EmployeeController extends Controller
             );
         }
     }
+
+
+    /**
+ * List SSO users waiting for an employee profile.
+ */
+public function pending()
+{
+    $pendingUsers = User::query()
+        ->whereNotNull('portal_user_id')
+        ->whereDoesntHave('employee')
+        ->orderByDesc('last_sso_login_at')
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function (User $user) {
+            return [
+                'id'                 => $user->id,
+                'name'               => $user->name,
+                'email'              => $user->email,
+                'portal_user_id'     => $user->portal_user_id,
+                'role'               => $user->role,
+                'status'             => $user->status,
+                'last_sso_login_at'  => $user->last_sso_login_at?->toIso8601String(),
+                'created_at'         => $user->created_at?->toIso8601String(),
+            ];
+        });
+
+    return Inertia::render('HRMO/Employees/Pending', [
+        'pendingUsers' => $pendingUsers,
+    ]);
+}
+
+/**
+ * Show the "link profile" form for a specific SSO user.
+ */
+public function linkForm(User $user)
+{
+    if (! $user->portal_user_id || $user->employee) {
+        return redirect()->route('hrmo.employees.pending');
+    }
+
+    $departments = Department::select('id', 'department_name')->orderBy('department_name')->get();
+    $leaveTypes  = LeaveType::where('status', true)->get();
+    $roles       = ['admin', 'hrmo', 'department_head', 'mayor', 'employee'];
+
+    // The portal stores a single "name" string. Split it into first/last
+    // as a hint — HRMO can correct the fields before saving.
+    $parts     = preg_split('/\s+/', trim((string) $user->name)) ?: [];
+    $firstname = $parts[0] ?? '';
+    $lastname  = count($parts) > 1 ? end($parts) : '';
+
+    return Inertia::render('HRMO/Employees/LinkProfile', [
+        'ssoUser' => [
+            'id'                   => $user->id,
+            'name'                 => $user->name,
+            'email'                => $user->email,
+            'portal_user_id'       => $user->portal_user_id,
+            'suggested_firstname'  => $firstname,
+            'suggested_lastname'   => $lastname,
+            'default_role'         => 'employee',
+        ],
+        'departments' => $departments,
+        'leaveTypes'  => $leaveTypes,
+        'roles'       => $roles,
+    ]);
+}
+
+/**
+ * Create an Employee record for an existing SSO user.
+ * Does NOT create a new User — the portal already owns the identity.
+ */
+public function storeForExistingUser(Request $request)
+{
+    $validated = $request->validate([
+        'user_id'        => 'required|exists:users,id',
+        'lastname'       => 'required|string|max:255',
+        'firstname'      => 'required|string|max:255',
+        'middle_initial' => 'nullable|string|max:1',
+        'salutation'     => 'nullable|string|max:50',
+        'department_id'  => 'nullable|exists:departments,id',
+        'position'       => 'nullable|string|max:255',
+        'civil_status'   => 'nullable|in:single,married,divorced,widowed',
+        'gender'         => 'nullable|in:male,female',
+        'role'           => ['required', Rule::in(['admin', 'hrmo', 'department_head', 'mayor', 'employee'])],
+        'balances'       => ['nullable', 'array'],
+        'balances.*'     => ['nullable', 'numeric', 'min:0'],
+    ]);
+
+    $user = User::findOrFail($validated['user_id']);
+
+    if (! $user->portal_user_id) {
+        return back()->withErrors(['user_id' => 'This user is not an SSO user.']);
+    }
+
+    if ($user->employee) {
+        return back()->withErrors(['user_id' => 'This user already has an employee profile.']);
+    }
+
+    $employee = Employee::create([
+        'user_id'        => $user->id,
+        'lastname'       => $validated['lastname'],
+        'firstname'      => $validated['firstname'],
+        'middle_initial' => $validated['middle_initial'] ?? null,
+        'salutation'     => $validated['salutation'] ?? null,
+        'department_id'  => $validated['department_id'] ?? null,
+        'position'       => $validated['position'] ?? null,
+        'email'          => $user->email,
+        'civil_status'   => $validated['civil_status'] ?? null,
+        'gender'         => $validated['gender'] ?? null,
+    ]);
+
+    // Apply role if HRMO overrode the default. The default is 'employee'
+    // because the SSO controller already set the user to that role.
+    if ($validated['role'] !== $user->role) {
+        $user->update(['role' => $validated['role']]);
+    }
+
+    if ($validated['role'] !== 'hrmo') {
+        $this->initializeBalances($employee->id, $validated['balances'] ?? []);
+    }
+
+    return redirect()
+        ->route('hrmo.employees.show', $employee)
+        ->with('success', "Profile linked. {$user->name} can now use iLeave.");
+}
 }

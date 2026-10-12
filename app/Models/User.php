@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -17,27 +16,29 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
-        'must_change_password', // <-- add
-    'password_changed_at',  // <-- add
-    'separated_at',
-    'separation_reason',
+        'must_change_password',
+        'password_changed_at',
+        'separated_at',
+        'separation_reason',
+        'portal_user_id',
+        'last_sso_login_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
-         'admin_pin', // hide from arrays
+        'admin_pin',
     ];
 
     protected $casts = [
-    'email_verified_at' => 'datetime',
-    'must_change_password' => 'boolean',   // <-- add this
-    'password_changed_at' => 'datetime',   // <-- if not already present
-    'password' => 'hashed',
-    'admin_pin_set_at' => 'datetime',
-     'separated_at' => 'datetime',
-];
-
+        'email_verified_at'     => 'datetime',
+        'must_change_password'  => 'boolean',
+        'password_changed_at'   => 'datetime',
+        'password'              => 'hashed',
+        'admin_pin_set_at'      => 'datetime',
+        'separated_at'          => 'datetime',
+        'last_sso_login_at'     => 'datetime',
+    ];
 
 
     // ========== RELATIONSHIPS ==========
@@ -115,5 +116,7 @@ public function activeSeparation()
         'id'            // employees.id
     )->where('employee_separations.status', 'active');
 }
+
+
 
 }

@@ -14,7 +14,7 @@ use App\Http\Controllers\DepartmentHead\RescheduleController as DepartmentHeadRe
 use App\Http\Controllers\DepartmentHead\MyLeaveRequestController as DepartmentRequestController;
 
 
-
+use App\Http\Controllers\Auth\SsoController;
 
 
 
@@ -58,19 +58,32 @@ use App\Http\Controllers\HRMO\AccrualController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
+
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
+
+
+
+Route::get('/auth/redirect', [SsoController::class, 'redirect'])->name('sso.redirect');
+Route::get('/auth/callback', [SsoController::class, 'callback'])->name('sso.callback');
+
+
+
+
 
 // Routes for first-login password change (accessible only when logged in, but exempt from password.changed)
 Route::middleware('auth')->group(function () {
     Route::get('/first-login-password', [FirstLoginPasswordController::class, 'create'])
         ->name('first-login-password.create');
 
-
     Route::post('/first-login-password', [FirstLoginPasswordController::class, 'store'])
         ->name('first-login-password.store');
 
+    // SSO users without an Employee record land here until HRMO onboards them.
+    Route::get('/employee/setup-pending', fn () => \Inertia\Inertia::render('Employee/SetupPending'))
+        ->name('employee.setup-pending');
 });
 
 
@@ -116,6 +129,12 @@ Route::prefix('hrmo')->name('hrmo.')->middleware('role:hrmo')->group(function ()
 
 
     // Employee management
+
+     Route::get('/employees/pending', [EmployeeController::class, 'pending'])->name('employees.pending');
+Route::get('/employees/link/{user}', [EmployeeController::class, 'linkForm'])->name('employees.link');
+Route::post('/employees/link', [EmployeeController::class, 'storeForExistingUser'])->name('employees.link.store');
+
+
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
     Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
     Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
@@ -173,6 +192,9 @@ Route::get('/notifications', [App\Http\Controllers\HRMO\NotificationController::
 
     Route::get('/accruals', [AccrualController::class, 'index'])->name('accruals.index');
 Route::get('/accruals/month', [AccrualController::class, 'getMonthTransactions'])->name('accruals.month');
+
+
+
 });
 
 
@@ -254,7 +276,8 @@ Route::post('/admin-leave-requests/{leaveRequest}/reject', [AdminLeaveRequestCon
 
 //===========================================================================================================================================
     // Employee
-    Route::prefix('employee')->name('employee.')->middleware('role:employee')->group(function () {
+       // Employee
+    Route::prefix('employee')->name('employee.')->middleware(['role:employee', 'employee.profile'])->group(function () {
         Route::get('/dashboard', [EmployeeDashboard::class, 'index'])->name('dashboard');
 
          // Profile routes
@@ -280,6 +303,12 @@ Route::post('/admin-leave-requests/{leaveRequest}/reject', [AdminLeaveRequestCon
     Route::get('/leave-requests/{leaveRequest}/reschedule', [EmployeeRescheduleController::class, 'create'])->name('reschedule.create');
     Route::post('/leave-requests/{leaveRequest}/reschedule', [EmployeeRescheduleController::class, 'store'])->name('reschedule.store');
     Route::get('/reschedules/{reschedule}', [EmployeeRescheduleController::class, 'show'])->name('reschedules.show');
+
+
+
+   
+
+
     });
 
     // // Profile routes (moved here so they are also protected)

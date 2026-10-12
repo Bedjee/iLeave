@@ -1,15 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
-import { useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
-        remember: false,
-    });
-
-    const [showPassword, setShowPassword] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const [activeFeature, setActiveFeature] = useState(0);
 
@@ -23,13 +15,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
         }, 4000);
         return () => clearInterval(interval);
     }, []);
-
-    const submit = (e) => {
-        e.preventDefault();
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
-    };
 
     const getDashboardRoute = () => {
         if (!auth.user) return route('login');
@@ -252,195 +237,95 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             </div>
                         </div>
 
-                    {/* Conditional Card – Sign-in for guests, Welcome for logged-in users */}
-<div className={`relative w-full max-w-sm mx-auto lg:mx-0 lg:justify-self-end z-20 transition-all duration-700 delay-200 ${
-    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-}`}>
-    <div className="rounded-xl bg-white shadow-[0_18px_50px_-15px_rgba(15,42,82,0.22)] border overflow-hidden" style={{ borderColor: 'rgba(15,42,82,0.10)' }}>
-        <div className="h-1" style={{ backgroundColor: GOLD }} />
+                        {/* Conditional Card – Sign-in for guests, Welcome for logged-in users */}
+                        <div className={`relative w-full max-w-sm mx-auto lg:mx-0 lg:justify-self-end z-20 transition-all duration-700 delay-200 ${
+                            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                        }`}>
+                            <div className="rounded-xl bg-white shadow-[0_18px_50px_-15px_rgba(15,42,82,0.22)] border overflow-hidden" style={{ borderColor: 'rgba(15,42,82,0.10)' }}>
+                                <div className="h-1" style={{ backgroundColor: GOLD }} />
 
-        {auth.user ? (
-            /* ===== WELCOME CARD (logged in) ===== */
-            <div className="px-6 py-8 text-center">
-                <img
-                    src="/images/opol.png"
-                    alt="Official seal of the Municipality of Opol"
-                    className="h-16 w-16 object-contain mx-auto"
-                />
-                <h2 className="mt-4 text-lg font-bold" style={{ color: NAVY, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    Welcome back!
-                </h2>
-                <p className="text-xs text-gray-500 mt-1">
-                    You are signed in as
-                </p>
-                <p className="text-sm font-semibold mt-1" style={{ color: NAVY }}>
-                    {auth.user.name || auth.user.full_name || 'User'}
-                </p>
+                                {auth.user ? (
+                                    /* ===== WELCOME CARD (logged in) ===== */
+                                    <div className="px-6 py-8 text-center">
+                                        <img
+                                            src="/images/opol.png"
+                                            alt="Official seal of the Municipality of Opol"
+                                            className="h-16 w-16 object-contain mx-auto"
+                                        />
+                                        <h2 className="mt-4 text-lg font-bold" style={{ color: NAVY, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                            Welcome back!
+                                        </h2>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            You are signed in as
+                                        </p>
+                                        <p className="text-sm font-semibold mt-1" style={{ color: NAVY }}>
+                                            {auth.user.name || auth.user.full_name || 'User'}
+                                        </p>
 
-                <Link
-                    href={getDashboardRoute()}
-                    className="mt-5 inline-flex items-center justify-center w-full py-2.5 rounded-lg text-white text-[13px] font-semibold tracking-wide shadow-sm hover:shadow-md transition"
-                    style={{ backgroundColor: NAVY }}
-                >
-                    Go to Dashboard
-                    <svg className="size-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </Link>
+                                        <Link
+                                            href={getDashboardRoute()}
+                                            className="mt-5 inline-flex items-center justify-center w-full py-2.5 rounded-lg text-white text-[13px] font-semibold tracking-wide shadow-sm hover:shadow-md transition"
+                                            style={{ backgroundColor: NAVY }}
+                                        >
+                                            Go to Dashboard
+                                            <svg className="size-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </Link>
 
-                <Link
-                    href={route('logout')}
-                    method="post"
-                    as="button"
-                    className="mt-3 block w-full text-center text-[12px] font-medium hover:underline transition"
-                    style={{ color: '#6b7280' }}
-                >
-                    Sign out
-                </Link>
-            </div>
-        ) : (
-            /* ===== SIGN-IN CARD (guest) ===== */
-            <>
-                <div className="px-6 pt-5 pb-4 text-center border-b" style={{ borderColor: 'rgba(15,42,82,0.08)', backgroundColor: '#FAFAF9' }}>
-                    <img
-                        src="/images/opol.png"
-                        alt="Official seal of the Municipality of Opol"
-                        className="h-14 w-14 object-contain mx-auto"
-                    />
-                    <h2 className="mt-3 text-lg font-bold" style={{ color: NAVY, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        Sign in to your account
-                    </h2>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Enter your credentials to access the system
-                    </p>
-                </div>
-
-                <form onSubmit={submit} className="px-6 py-4 space-y-3" noValidate>
-                    <div>
-                        <label htmlFor="email" className="block text-[13px] font-medium text-gray-700 mb-1">
-                            Email
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" />
-                                </svg>
-                            </span>
-                            <input
-                                id="email"
-                                type="email"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                className={`w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300'} pl-9 pr-3 py-2 text-[13px] focus:outline-none focus:ring-2 transition`}
-                                onFocus={(e) => (e.target.style.borderColor = NAVY)}
-                                onBlur={(e) => {
-                                    if (!errors.email) e.target.style.borderColor = '';
-                                }}
-                                placeholder="juan.delacruz"
-                                required
-                                aria-invalid={!!errors.email}
-                            />
-                        </div>
-                        {errors.email && (
-                            <p className="mt-1 text-[11px] text-red-600 flex items-center gap-1">
-                                <span className="inline-block w-1 h-1 rounded-full bg-red-500" />
-                                {errors.email}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label htmlFor="password" className="block text-[13px] font-medium text-gray-700 mb-1">
-                            Password
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                            </span>
-                            <input
-                                id="password"
-                                type={showPassword ? 'text' : 'password'}
-                                value={data.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                                className={`w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} pl-9 pr-9 py-2 text-[13px] focus:outline-none focus:ring-2 transition`}
-                                placeholder="••••••••"
-                                required
-                                aria-invalid={!!errors.password}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition"
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                            >
-                                {showPassword ? (
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                                    </svg>
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                            className="mt-3 block w-full text-center text-[12px] font-medium hover:underline transition"
+                                            style={{ color: '#6b7280' }}
+                                        >
+                                            Sign out
+                                        </Link>
+                                    </div>
                                 ) : (
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    /* ===== SIGN-IN CARD (guest — SSO) ===== */
+                                    <>
+                                        <div className="px-6 pt-5 pb-4 text-center border-b" style={{ borderColor: 'rgba(15,42,82,0.08)', backgroundColor: '#FAFAF9' }}>
+                                            <img
+                                                src="/images/opol.png"
+                                                alt="Official seal of the Municipality of Opol"
+                                                className="h-14 w-14 object-contain mx-auto"
+                                            />
+                                            <h2 className="mt-3 text-lg font-bold" style={{ color: NAVY, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                                Sign in to your account
+                                            </h2>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                Use your Opol Portal account to continue
+                                            </p>
+                                        </div>
+
+                                        <div className="px-6 py-6">
+                                            <a
+                                                href={route('sso.redirect')}
+                                                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg text-white text-[13px] font-semibold tracking-wide shadow-sm hover:shadow-md transition"
+                                                style={{ backgroundColor: NAVY }}
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"
+                                                        d="M12 3l7 3v5.2c0 4.6-3 8.7-7 9.8-4-1.1-7-5.2-7-9.8V6l7-3z" />
+                                                </svg>
+                                                Sign in with Opol Portal
+                                            </a>
+
+                                            <p className="mt-4 text-[11px] text-center text-gray-500 leading-relaxed">
+                                                You will be redirected to the Opol Portal to authenticate.
+                                                Your password is never shared with iLeave.
+                                            </p>
+                                        </div>
+
+                                        <p className="pb-4 text-center text-[10px] uppercase tracking-[0.12em] text-gray-400">
+                                            Official use only
+                                        </p>
+                                    </>
                                 )}
-                            </button>
+                            </div>
                         </div>
-                        {errors.password && (
-                            <p className="mt-1 text-[11px] text-red-600 flex items-center gap-1">
-                                <span className="inline-block w-1 h-1 rounded-full bg-red-500" />
-                                {errors.password}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-0.5">
-                        <label className="flex items-center gap-1.5 cursor-pointer select-none group">
-                            <input
-                                type="checkbox"
-                                checked={data.remember}
-                                onChange={(e) => setData('remember', e.target.checked)}
-                                className="rounded border-gray-300 text-[#0F2A52] focus:ring-[#0F2A52] focus:ring-offset-0"
-                            />
-                            <span className="text-[12px] text-gray-600 group-hover:text-gray-800 transition">Remember me</span>
-                        </label>
-                        <Link
-                            href={route('password.request')}
-                            className="text-[12px] font-medium hover:underline transition"
-                            style={{ color: NAVY }}
-                        >
-                            Forgot password?
-                        </Link>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full py-2.5 rounded-lg text-white text-[13px] font-semibold tracking-wide shadow-sm hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-                        style={{ backgroundColor: NAVY }}
-                    >
-                        <span className={`inline-flex items-center transition-all duration-300 ${processing ? 'opacity-0' : 'opacity-100'}`}>
-                            Sign In
-                        </span>
-                        {processing && (
-                            <span className="absolute inset-0 flex items-center justify-center">
-                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                            </span>
-                        )}
-                    </button>
-                </form>
-
-                <p className="pb-4 text-center text-[10px] uppercase tracking-[0.12em] text-gray-400">
-                    Official use only
-                </p>
-            </>
-        )}
-    </div>
-</div>
                     </div>
                 </section>
 

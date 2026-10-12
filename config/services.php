@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+
+
+
+    'portal_sso' => [
+    'client_id'     => env('PORTAL_SSO_CLIENT_ID'),
+    'client_secret' => env('PORTAL_SSO_CLIENT_SECRET'),
+    'redirect_uri'  => env('PORTAL_SSO_REDIRECT_URI', '/auth/callback'),
+
+    'authorize_url' => env('PORTAL_SSO_AUTHORIZE_URL'),
+    'token_url'     => env('PORTAL_SSO_TOKEN_URL'),
+    'userinfo_url'  => env('PORTAL_SSO_USERINFO_URL'),
+
+    // Only users with these employment statuses may access iLeave via SSO.
+    // Everyone else is rejected at the callback with a clear message.
+    'allowed_employment_statuses' => ['regular', 'job_order'],
+
+    // Timeout (seconds) for the token exchange and userinfo calls.
+    'http_timeout' => 10,
+],
+
 ];
