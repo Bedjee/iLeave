@@ -419,6 +419,15 @@ if ($isMayorPreview) {
             // Dynamically get the final approver's role
             $adminRole     = getUserRoleDisplay($finalApprovedBy);
 
+            // Final approver's position (falls back to Municipal Mayor for the Mayor)
+$rolePositions = [
+    'mayor' => 'Municipal Mayor',
+    'hrmo'  => 'Human Resource Management Officer',
+    'admin' => 'Municipal Administrator',
+];
+$adminPosition = $finalApprovedBy?->employee?->position
+    ?: ($rolePositions[$finalApprovedBy?->role] ?? getUserRoleDisplay($finalApprovedBy));
+
             // --------------------------------------------------------------
             // Mayor-specific approvers (configured by HRMO at certification)
             // --------------------------------------------------------------
@@ -739,19 +748,17 @@ if ($isMayorPreview) {
                 <tr>
                     <td colspan="2" style="border:1px solid #000; padding:8px 6px; text-align:center;">
                         <div class="signature-block">
-                            @if($secondApprover)
-                                {{-- Second configured approver (Mayor request) --}}
-                                <div class="signature-line">{{ $secondApprover->name }}</div>
-                                <div class="approver-role">
-                                    ({{ $secondApprover->role_label }}@if($secondApprover->position) — {{ $secondApprover->position }}@endif)
-                                </div>
-                            @else
-                                {{-- Default: Admin / Final Approver --}}
-                                <div class="signature-line">{{ $adminName }}</div>
-                                <div class="approver-role">({{ $adminRole }})</div>
-                            @endif
-                            <div class="verification-text">Approval Duly Recorded and Authorized in the System by</div>
-                        </div>
+    @if($secondApprover)
+        <div class="signature-line">{{ $secondApprover->name }}</div>
+        <div class="approver-role">
+            ({{ $secondApprover->position ?: $secondApprover->role_label }})
+        </div>
+    @else
+        <div class="signature-line">{{ $adminName }}</div>
+        <div class="approver-role">({{ $adminPosition }})</div>
+    @endif
+    <div class="verification-text">Approval Duly Recorded and Authorized in the System by</div>
+</div>
                     </td>
                 </tr>
             </tbody>
