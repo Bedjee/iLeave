@@ -3,20 +3,16 @@
 namespace App\Notifications;
 
 use App\Models\LeaveRequest;
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class LeaveRequestSubmitted extends Notification implements ShouldQueue
+class LeaveRequestSubmitted extends Notification
 {
-    use Queueable;
-
     public function __construct(public LeaveRequest $leaveRequest)
     {}
 
     public function via($notifiable): array
     {
-        return ['database']; // 👈 We'll add 'broadcast' later for real‑time
+        return ['database'];
     }
 
     public function toDatabase($notifiable): array
